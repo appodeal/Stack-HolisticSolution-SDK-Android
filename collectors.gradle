@@ -1,0 +1,28 @@
+static List<File> collectServices() {
+    return collectModules(new File('services'), null, null)
+}
+
+static List<File> collectConnectors() {
+    return collectModules(new File('connectors'), null, null)
+}
+
+static List<File> collectModules(File rootFolder,
+                                 List<String> including,
+                                 List<String> excluding) {
+    return rootFolder
+            .listFiles()
+            .findAll { file -> file.isDirectory() && !file.name.startsWith('_') }
+            .findAll { folder ->
+                if (including == null || including.contains(folder.name)) {
+                    if (excluding == null || !excluding.contains(folder.name)) {
+                        return true
+                    }
+                }
+                return false
+            }
+}
+
+ext {
+    collectServices = this.&collectServices
+    collectConnectors = this.&collectConnectors
+}

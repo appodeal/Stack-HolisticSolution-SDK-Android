@@ -1,0 +1,119 @@
+{
+  "project_info": {
+    "project_number": "893254883779",
+    "firebase_url": "https://appodeal-dev.firebaseio.com",
+    "project_id": "appodeal-dev",
+    "storage_bucket": "appodeal-dev.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:893254883779:android:6943b4dfd1f985a48d8576",
+        "android_client_info": {
+          "package_name": "com.appodeal.glavatskikh"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "893254883779-nksp7joejh0ta4ltshncrge1u4691rg8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAUN7O8SkP1YNUf3KAwT0Mo7Q9jmypLDg8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "893254883779-nksp7joejh0ta4ltshncrge1u4691rg8.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "893254883779-r7vcaq3kv0t64p5v77q2j7gfbsgc9pjl.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.appodeal.sandbox"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:893254883779:android:1315f831eb4fd7b78d8576",
+        "android_client_info": {
+          "package_name": "com.appodeal.test"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "893254883779-nksp7joejh0ta4ltshncrge1u4691rg8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAUN7O8SkP1YNUf3KAwT0Mo7Q9jmypLDg8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "893254883779-nksp7joejh0ta4ltshncrge1u4691rg8.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "893254883779-r7vcaq3kv0t64p5v77q2j7gfbsgc9pjl.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.appodeal.sandbox"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:893254883779:android:b88037828d535b898d8576",
+        "android_client_info": {
+          "package_name": "com.explorestack.hs.sdk.example"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "893254883779-nksp7joejh0ta4ltshncrge1u4691rg8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAUN7O8SkP1YNUf3KAwT0Mo7Q9jmypLDg8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "893254883779-nksp7joejh0ta4ltshncrge1u4691rg8.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "893254883779-r7vcaq3kv0t64p5v77q2j7gfbsgc9pjl.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.appodeal.sandbox"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

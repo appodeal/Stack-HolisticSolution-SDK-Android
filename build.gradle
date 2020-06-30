@@ -1,0 +1,35 @@
+apply from: "${rootDir}/collectors.gradle"
+
+buildscript {
+    repositories {
+        google()
+        jcenter()
+    }
+    dependencies {
+        classpath "com.android.tools.build:gradle:4.0.0"
+        classpath "com.google.gms:google-services:4.3.3"
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.9.7"
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        jcenter()
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
+
+task publishAllToArtifactory {
+    List<String> dependsTasks = [':sdk:uploadToArtifactory']
+    collectServices().forEach {
+        dependsTasks.add(":services:${it.name}:uploadToArtifactory")
+    }
+    collectConnectors().collect {
+        dependsTasks.add(":connectors:${it.name}:uploadToArtifactory")
+    }
+    finalizedBy(dependsTasks.toArray())
+}

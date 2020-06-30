@@ -1,0 +1,13 @@
+apply from: "${rootDir}/collectors.gradle"
+
+include ':sdk'
+include ':example'
+include ':services'
+include ':connectors'
+
+collectServices().forEach { folder ->
+    settings.include(":services:$folder.name")
+}
+collectConnectors().forEach { folder ->
+    settings.include(":connectors:$folder.name")
+}

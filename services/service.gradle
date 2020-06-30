@@ -1,0 +1,7 @@
+apply from: "${rootDir}/configurations.gradle"
+
+ext {
+    publishGroupId = 'com.explorestack.hs.sdk.service'
+}
+
+apply from: "${rootDir}/publish.gradle"

@@ -1,0 +1,63 @@
+import groovy.json.JsonOutput
+
+File publishOutputDir = file(buildDir.path + '/publish')
+File publishOutputDependenciesJson = file(publishOutputDir.path + '/dependencies.json')
+
+/**
+ * Custom configuration for correct dependencies merge for different distribution schemes
+ */
+configurations {
+    remoteDependency
+}
+
+project.configurations
+        .getByName('api')
+        .extendsFrom(configurations.remoteDependency)
+
+task prepareForPublishing(dependsOn: assemble) {
+    doLast {
+        delete publishOutputDir
+        publishOutputDir.mkdirs()
+
+        def remoteDependencies = []
+        remoteDependencies.addAll(project.configurations.remoteDependency.dependencies.asList())
+
+        def dependencies = []
+        remoteDependencies.forEach { dep ->
+            if (dep instanceof ModuleDependency) {
+                def dependency = [
+                        groupId   : dep.group,
+                        artifactId: dep.name,
+                        version   : dep.version
+                ]
+                if (dep.artifacts != null && !dep.artifacts.isEmpty()) {
+                    def type = dep.artifacts.first().type
+                    // We are interested only in 'aar' types
+                    if ("aar" == type) {
+                        dependency['type'] = type
+                    }
+                }
+                if (!dep.excludeRules.isEmpty()) {
+                    def exclusions = []
+                    dep.excludeRules.forEach { ExcludeRule rule ->
+                        def exclusion = [
+                                groupId: rule.group
+                        ]
+                        if (rule.module != null) {
+                            exclusion['artifactId'] = rule.module
+                        }
+                        exclusions.push(exclusion)
+                    }
+                    dependency['exclusions'] = exclusions
+                }
+                dependencies.push(dependency)
+            }
+        }
+        publishOutputDependenciesJson.createNewFile()
+        publishOutputDependenciesJson.write(JsonOutput.toJson(dependencies))
+        copy {
+            from "$buildDir/outputs/aar/${project.name}-publish.aar"
+            into publishOutputDir
+        }
+    }
+}
