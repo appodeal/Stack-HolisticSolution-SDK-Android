@@ -47,3 +47,9 @@ public class MainActivity extends AppCompatActivity {
 |-------------------------------|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | targetValuesKeys              | No       | Values keys, which should be collected from Firebase Remote Config SDK response. If it's not provided or it's empty, all values will be collected                                                                                                                                                                           |
 | minimumFetchIntervalInSeconds | No       | The default minimum fetch interval which means that configs won't be fetched from the backend more than once in provided interval window, regardless of how many fetch calls are actually made. You can read more about this parameter [here](https://firebase.google.com/docs/remote-config/use-config-android#throttling) |
+
+#### Service methods
+
+| Method               | Description                                                                     |
+|----------------------|---------------------------------------------------------------------------------|
+| setFirebaseAnalytics | Sets custom `FirebaseAnalytics` instance which will be used for dispatch events |

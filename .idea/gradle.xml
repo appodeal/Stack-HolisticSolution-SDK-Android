@@ -18,6 +18,7 @@
             <option value="$PROJECT_DIR$/sdk" />
             <option value="$PROJECT_DIR$/services" />
             <option value="$PROJECT_DIR$/services/appsflyer" />
+            <option value="$PROJECT_DIR$/services/facebook" />
             <option value="$PROJECT_DIR$/services/firebase" />
           </set>
         </option>

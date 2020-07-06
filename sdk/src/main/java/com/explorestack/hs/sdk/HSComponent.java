@@ -1,5 +1,7 @@
 package com.explorestack.hs.sdk;
 
+import android.content.Context;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -23,6 +25,11 @@ public class HSComponent {
     @Nullable
     public String getVersion() {
         return version;
+    }
+
+    @Nullable
+    public HSEventsCallback getEventsCallback(@NonNull Context context) {
+        return null;
     }
 
     protected HSError buildError(@NonNull String message) {

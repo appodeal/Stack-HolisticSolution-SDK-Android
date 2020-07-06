@@ -42,6 +42,7 @@ dependencies {
     implementation project(path: ':sdk')
     implementation project(path: ':connectors:appodeal')
     implementation project(path: ':services:appsflyer')
+    implementation project(path: ':services:facebook')
     implementation project(path: ':services:firebase')
 
     implementation 'com.appodeal.ads:sdk:2.6.4+'

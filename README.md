@@ -2,6 +2,14 @@
 
 Stack Holistic Solution SDK for Android simplifies the collection and transfer of the necessary parameters from third-party services to the corresponding Stack SDKs to improve the performance of services such as Mediation and UA
 
+## Table of contents
+
+* [Import SDK](#import-sdk)
+* [Initialize SDK](#initialize-sdk)
+* [Events](#events)
+* [Available Services](services/README.md)
+* [Available Connectors](connectors/README.md)
+  
 ## Import SDK
 
 #### Add the Appodeal maven repository
@@ -52,8 +60,9 @@ dependencies {
 }
 ```
 
-[initialize_sdk]: initialize_sdk
 ##  Initialize SDK
+
+Holistic Solution SDK will automatically initialize all registered services (e.g - AppsFlyer, Firebase) and sync all required data to registered connectors (e.g - Appodeal).
 
 To initialize SDK add the line below to onCreate method of your application or activity class:
 
@@ -116,6 +125,24 @@ Enable HSApp, services and connectors logging
 HSLogger.setEnabled(true)
 ```
 
-## AndroidX
+### AndroidX
 
 HS SDK using [AndroidX](https://developer.android.com/jetpack/androidx), so please make sure you have enabled [Jetifier](https://developer.android.com/jetpack/androidx#using_androidx_libraries_in_your_project)
+
+## Events
+
+Holistic Solution SDK allows you to send events to analytic services such as Firebase, AppsFlyer and Facebook using a single method:
+
+```java
+// Create map of event parameters if required
+Map<String, Object> params = new HashMap<>();
+params.put("example_param_1", "Param1 value");
+params.put("example_param_2", 123);
+
+// Send event to all connected analytics services
+HSApp.logEvent("hs_sdk_example_test_event", params);
+```
+
+> Event parameters can only be strings and numbers
+
+[Code example](example/src/main/java/com/explorestack/hs/sdk/example/ExampleActivity.java#L67)

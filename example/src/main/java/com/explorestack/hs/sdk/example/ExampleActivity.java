@@ -3,6 +3,7 @@ package com.explorestack.hs.sdk.example;
 import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -13,7 +14,9 @@ import com.explorestack.hs.sdk.HSApp;
 import com.explorestack.hs.sdk.HSAppInitializeListener;
 import com.explorestack.hs.sdk.HSError;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ExampleActivity extends AppCompatActivity {
 
@@ -56,6 +59,19 @@ public class ExampleActivity extends AppCompatActivity {
         super.onDestroy();
         // Remove HSApp initialize listener, since HSApp store strong reference to provided listener
         HSApp.removeInitializeListener(hsAppInitializeListener);
+    }
+
+    /**
+     * Example of events logging
+     */
+    public void logEvent(View view) {
+        // Create map of event parameters if required
+        Map<String, Object> params = new HashMap<>();
+        params.put("example_param_1", "Param1 value");
+        params.put("example_param_2", 123);
+
+        // Send event to all connected analytics services
+        HSApp.logEvent("hs_sdk_example_test_event", params);
     }
 
     /**

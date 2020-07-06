@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">HS SDK Example App</string>
+    <string name="facebook_app_id">2676050192716090</string>
+    <string name="fb_login_protocol_scheme">fb2676050192716090</string>
 </resources>

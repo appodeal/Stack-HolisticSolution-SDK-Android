@@ -11,10 +11,11 @@ import com.appsflyer.AFLogger;
 import com.appsflyer.AppsFlyerConversionListener;
 import com.appsflyer.AppsFlyerLib;
 import com.explorestack.hs.sdk.HSAppParams;
+import com.explorestack.hs.sdk.HSComponentCallback;
 import com.explorestack.hs.sdk.HSConnectorCallback;
+import com.explorestack.hs.sdk.HSEventsCallback;
 import com.explorestack.hs.sdk.HSLogger;
 import com.explorestack.hs.sdk.HSService;
-import com.explorestack.hs.sdk.HSComponentCallback;
 
 import java.util.HashMap;
 import java.util.List;
@@ -28,6 +29,8 @@ public class HSAppsflyerService extends HSService {
     private final List<String> conversionKeys;
     @Nullable
     private AppsFlyerConversionListener conversionListener;
+    @Nullable
+    private AppsFlyerConversionListener externalConversionListener;
 
     public HSAppsflyerService(@NonNull String devKey) {
         this(devKey, null);
@@ -37,6 +40,10 @@ public class HSAppsflyerService extends HSService {
         super("Appsflyer", AppsFlyerLib.getInstance().getSdkVersion());
         this.devKey = devKey;
         this.conversionKeys = conversionKeys;
+    }
+
+    public void setAppsFlyerConversionListener(@Nullable AppsFlyerConversionListener conversionListener) {
+        this.externalConversionListener = conversionListener;
     }
 
     @Override
@@ -69,6 +76,12 @@ public class HSAppsflyerService extends HSService {
         connectorCallback.setAttributionId("appsflyer_id", appsFlyer.getAppsFlyerUID(context));
     }
 
+    @Nullable
+    @Override
+    public HSEventsCallback getEventsCallback(@NonNull Context context) {
+        return new HSEventsDelegate(context);
+    }
+
     private final class ConversionListener implements AppsFlyerConversionListener {
 
         @NonNull
@@ -99,22 +112,49 @@ public class HSAppsflyerService extends HSService {
                 }
             }
             callback.onFinished();
+            if (externalConversionListener != null) {
+                externalConversionListener.onConversionDataSuccess(map);
+            }
         }
 
         @Override
         public void onConversionDataFail(String s) {
-            HSLogger.logInfo("Appsflyer", "onConversionDataSuccess");
+            HSLogger.logInfo("Appsflyer", "onConversionDataSuccess: " + s);
             callback.onFail(buildError(s));
+            if (externalConversionListener != null) {
+                externalConversionListener.onConversionDataFail(s);
+            }
         }
 
         @Override
         public void onAppOpenAttribution(Map<String, String> map) {
             HSLogger.logInfo("Appsflyer", "onAppOpenAttribution");
+            if (externalConversionListener != null) {
+                externalConversionListener.onAppOpenAttribution(map);
+            }
         }
 
         @Override
         public void onAttributionFailure(String s) {
-            HSLogger.logInfo("Appsflyer", "onAttributionFailure");
+            HSLogger.logInfo("Appsflyer", "onAttributionFailure: " + s);
+            if (externalConversionListener != null) {
+                externalConversionListener.onAttributionFailure(s);
+            }
+        }
+    }
+
+    private final class HSEventsDelegate implements HSEventsCallback {
+
+        @NonNull
+        private final Context context;
+
+        public HSEventsDelegate(@NonNull Context context) {
+            this.context = context;
+        }
+
+        @Override
+        public void onEvent(@NonNull String eventName, @Nullable Map<String, Object> params) {
+            AppsFlyerLib.getInstance().trackEvent(context, eventName, params);
         }
     }
 }

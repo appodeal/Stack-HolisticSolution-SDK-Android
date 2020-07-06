@@ -38,7 +38,7 @@ public class YourApplication extends Application {
 [appodeal_sdk_initialization]: appodeal_sdk_initialization
 ## Appodeal SDK Initialization
 
-First, make sure you've read how to configure and initialize [HSApp](../../README.md#initialize_sdk)
+First, make sure you've read how to configure and initialize [HSApp](../../README.md#initialize-sdk)
 
 ```java
 public class ExampleActivity extends AppCompatActivity {

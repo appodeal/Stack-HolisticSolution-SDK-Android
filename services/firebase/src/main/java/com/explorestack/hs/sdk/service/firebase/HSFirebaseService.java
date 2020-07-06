@@ -7,13 +7,16 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.explorestack.hs.sdk.HSAppParams;
-import com.explorestack.hs.sdk.HSConnectorCallback;
-import com.explorestack.hs.sdk.HSService;
 import com.explorestack.hs.sdk.HSComponentCallback;
+import com.explorestack.hs.sdk.HSConnectorCallback;
+import com.explorestack.hs.sdk.HSEventsCallback;
+import com.explorestack.hs.sdk.HSService;
+import com.explorestack.hs.sdk.HSUtils;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApp;
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigValue;
@@ -26,8 +29,10 @@ public class HSFirebaseService extends HSService {
 
     @Nullable
     private final Map<String, Object> targetValuesKeys;
-
     private final Long minimumFetchIntervalInSeconds;
+
+    @Nullable
+    private FirebaseAnalytics firebaseAnalytics;
 
     public HSFirebaseService() {
         this(null, null);
@@ -42,6 +47,10 @@ public class HSFirebaseService extends HSService {
         super("Firebase", null);
         this.targetValuesKeys = targetValuesKeys;
         this.minimumFetchIntervalInSeconds = minimumFetchIntervalInSeconds;
+    }
+
+    public void setFirebaseAnalytics(@Nullable FirebaseAnalytics analytics) {
+        this.firebaseAnalytics = analytics;
     }
 
     @Override
@@ -95,5 +104,24 @@ public class HSFirebaseService extends HSService {
                         callback.onFail(buildError("" + e.getMessage()));
                     }
                 });
+        if (firebaseAnalytics == null) {
+            firebaseAnalytics = FirebaseAnalytics.getInstance(context);
+        }
+    }
+
+    @Nullable
+    @Override
+    public HSEventsCallback getEventsCallback(@NonNull Context context) {
+        return new HSEventsDelegate();
+    }
+
+    private final class HSEventsDelegate implements HSEventsCallback {
+
+        @Override
+        public void onEvent(@NonNull String eventName, @Nullable Map<String, Object> params) {
+            if (firebaseAnalytics != null) {
+                firebaseAnalytics.logEvent(eventName, HSUtils.mapToBundle(params));
+            }
+        }
     }
 }

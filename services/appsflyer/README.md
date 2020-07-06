@@ -49,6 +49,12 @@ public class MainActivity extends AppCompatActivity {
 | devKey         | Yes      | AppsFlyer dev key. You can find more info about it's retrieving [here](https://support.appsflyer.com/hc/en-us/articles/207032126-Android-SDK-integration-for-developers#integration-31-retrieving-your-dev-key)  |
 | conversionKeys | No       | Keys, which should be collected from AppsFlyer 'onConversionDataSuccess' response. If it's not provided or it's empty, all keys will be collected                                                                |
 
+#### Service methods
+
+| Method                         | Description                                                                                                                 |
+|--------------------------------|-----------------------------------------------------------------------------------------------------------------------------|
+| setAppsFlyerConversionListener | Sets custom AppsFlyer `AppsFlyerConversionListener` which will be called when service receives appropriate AppsFlyer events |
+
 ## Known issues
 
 #### Issue with 'fullBackupContent' merging

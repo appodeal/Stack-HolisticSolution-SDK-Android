@@ -14,6 +14,7 @@ import com.explorestack.hs.sdk.HSError;
 import com.explorestack.hs.sdk.HSLogger;
 import com.explorestack.hs.sdk.connector.appodeal.HSAppodealConnector;
 import com.explorestack.hs.sdk.service.appsflyer.HSAppsflyerService;
+import com.explorestack.hs.sdk.service.facebook.HSFacebookService;
 import com.explorestack.hs.sdk.service.firebase.HSFirebaseService;
 
 import java.util.List;
@@ -49,10 +50,14 @@ public class ExampleApplication extends MultiDexApplication {
         //Create service for Firebase
         HSFirebaseService firebaseService = new HSFirebaseService();
 
+        //Create service for Facebook
+        HSFacebookService facebookService = new HSFacebookService();
+
+        //Create HSApp configuration
         HSAppConfig appConfig = new HSAppConfig()
                 .setDebugEnabled(true)
                 .withConnectors(appodealConnector)
-                .withServices(appsflyerService, firebaseService);
+                .withServices(appsflyerService, facebookService, firebaseService);
 
         //Initialize HSApp
         HSApp.initialize(context, appConfig, new HSAppInitializeListener() {
