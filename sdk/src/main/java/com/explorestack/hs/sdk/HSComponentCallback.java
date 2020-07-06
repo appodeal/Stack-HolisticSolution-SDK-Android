@@ -2,7 +2,7 @@ package com.explorestack.hs.sdk;
 
 import androidx.annotation.NonNull;
 
-public interface HSServiceCallback {
+public interface HSComponentCallback {
 
     void onFinished();
 

@@ -1,10 +1,10 @@
 package com.explorestack.hs.sdk;
 
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import java.util.List;
 
 public interface HSAppInitializeListener {
 
-    void onAppInitialized();
-
-    void onAppInitializationFailed(@NonNull HSError error);
+    void onAppInitialized(@Nullable List<HSError> errors);
 }

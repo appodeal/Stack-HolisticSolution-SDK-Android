@@ -2,7 +2,7 @@ package com.explorestack.hs.sdk;
 
 public interface HSAppParams {
 
-    long getServiceInitializeTimeoutMs();
+    long getComponentInitializeTimeoutMs();
 
     boolean isDebugEnabled();
 }

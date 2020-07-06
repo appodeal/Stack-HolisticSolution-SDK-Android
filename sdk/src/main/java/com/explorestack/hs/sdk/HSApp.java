@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -22,8 +23,7 @@ public class HSApp {
     private static final String TAG = HSApp.class.getSimpleName();
 
     @NonNull
-    private static final List<HSAppInitializeListener> listeners =
-            new CopyOnWriteArrayList<>();
+    private static final List<HSAppInitializeListener> listeners = new CopyOnWriteArrayList<>();
 
     @SuppressLint("StaticFieldLeak")
     @Nullable
@@ -45,25 +45,19 @@ public class HSApp {
             final Context targetContext = context.getApplicationContext();
             final HSAppInitializeListener listenerDelegate = new HSAppInitializeListener() {
                 @Override
-                public void onAppInitialized() {
-                    HSLogger.logInfo(TAG, "onAppInitialized");
+                public void onAppInitialized(@Nullable List<HSError> errors) {
+                    HSLogger.logInfo(TAG, "Initialized");
+                    if (errors != null) {
+                        for (HSError error : errors) {
+                            HSLogger.logError("Error", error.toString());
+                        }
+                    }
                     isInitialized = true;
                     initializer = null;
                     if (listener != null) {
-                        listener.onAppInitialized();
+                        listener.onAppInitialized(errors);
                     }
-                    notifyInitialized();
-                }
-
-                @Override
-                public void onAppInitializationFailed(@NonNull HSError error) {
-                    HSLogger.logInfo(TAG, "onAppInitializationFailed: " + error.toString());
-                    isInitialized = false;
-                    initializer = null;
-                    if (listener != null) {
-                        listener.onAppInitializationFailed(error);
-                    }
-                    notifyInitializationFailed(error);
+                    notifyInitialized(errors);
                 }
             };
             initializer = new HSAppInitializer(targetContext, config, listenerDelegate);
@@ -83,25 +77,13 @@ public class HSApp {
         }
     }
 
-    private static void notifyInitialized() {
+    private static void notifyInitialized(@Nullable final List<HSError> errors) {
         final List<HSAppInitializeListener> targetListeners = new ArrayList<>(listeners);
         new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
             public void run() {
                 for (HSAppInitializeListener listener : targetListeners) {
-                    listener.onAppInitialized();
-                }
-            }
-        });
-    }
-
-    private static void notifyInitializationFailed(@NonNull final HSError error) {
-        final List<HSAppInitializeListener> targetListeners = new ArrayList<>(listeners);
-        new Handler(Looper.getMainLooper()).post(new Runnable() {
-            @Override
-            public void run() {
-                for (HSAppInitializeListener listener : targetListeners) {
-                    listener.onAppInitializationFailed(error);
+                    listener.onAppInitialized(errors);
                 }
             }
         });
@@ -117,6 +99,8 @@ public class HSApp {
         private HSAppConfig appConfig;
         @NonNull
         private HSAppInitializeListener listener;
+        @Nullable
+        private List<HSError> errors;
 
         public HSAppInitializer(@NonNull Context context,
                                 @NonNull HSAppConfig appConfig,
@@ -130,108 +114,182 @@ public class HSApp {
         public void run() {
             final List<HSService> services = appConfig.getServices();
             final List<HSConnector> connectors = appConfig.getConnectors();
-
             if (isListNullOrEmpty(services)) {
-                listener.onAppInitializationFailed(HSError.NoServices);
-                return;
+                addError(HSError.NoServices);
             }
             if (isListNullOrEmpty(connectors)) {
-                listener.onAppInitializationFailed(HSError.NoConnectors);
+                addError(HSError.NoConnectors);
+            }
+            final HSAppParamsImpl appParams = new HSAppParamsImpl(appConfig);
+            //Connectors initialization
+            initializeComponents(connectors, new HSComponentInitializerBuilder<HSConnector>() {
+                @Override
+                public HSComponentInitializer<HSConnector> build(@NonNull HSConnector component,
+                                                                 @NonNull HSComponentCallback callback) {
+                    return new HSConnectorInitializer(context, component, appParams, callback);
+                }
+            });
+            // Service initialization
+            final HSConnectorDelegate connectorDelegate = new HSConnectorDelegate(connectors);
+            initializeComponents(services, new HSComponentInitializerBuilder<HSService>() {
+                @Override
+                public HSComponentInitializer<HSService> build(@NonNull HSService component,
+                                                               @NonNull HSComponentCallback callback) {
+                    return new HSServiceInitializer(
+                            context, component, appParams, callback, connectorDelegate);
+                }
+            });
+            listener.onAppInitialized(getErrors());
+        }
+
+        private <T extends HSComponent> void initializeComponents(
+                @NonNull List<T> components,
+                @NonNull HSComponentInitializerBuilder<T> initializerBuilder
+        ) {
+            if (components.isEmpty()) {
                 return;
             }
-
-            final CountDownLatch latch = new CountDownLatch(services.size());
-            final HSAppParamsImpl appParamsHolder = new HSAppParamsImpl(appConfig);
-            final HSConnectorDelegate connectorDelegate = new HSConnectorDelegate(connectors);
-            final HSServiceCallback serviceCallback = new HSServiceCallback() {
+            final CountDownLatch componentsWaiter = new CountDownLatch(components.size());
+            final HSComponentCallback componentsCallback = new HSComponentCallback() {
                 @Override
                 public void onFinished() {
-                    latch.countDown();
+                    componentsWaiter.countDown();
                 }
 
                 @Override
                 public void onFail(@NonNull HSError error) {
-                    latch.countDown();
+                    addError(error);
+                    componentsWaiter.countDown();
                 }
             };
-            for (final HSService service : services) {
-                HSServiceInitializer serviceInitializer = new HSServiceInitializer(
-                        context, service, appParamsHolder, serviceCallback, connectorDelegate);
-                executor.execute(serviceInitializer);
+            for (T component : components) {
+                HSComponentInitializer<T> initializer =
+                        initializerBuilder.build(component, componentsCallback);
+                executor.execute(initializer);
             }
             try {
-                latch.await();
+                componentsWaiter.await();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            listener.onAppInitialized();
+        }
+
+        private void addError(@NonNull HSError error) {
+            if (errors == null) {
+                errors = new ArrayList<>();
+            }
+            errors.add(error);
+        }
+
+        @Nullable
+        public List<HSError> getErrors() {
+            return errors != null ? Collections.unmodifiableList(errors) : null;
         }
 
         private <T> boolean isListNullOrEmpty(@Nullable List<T> list) {
             return list == null || list.isEmpty();
         }
+
+        private interface HSComponentInitializerBuilder<T extends HSComponent> {
+            HSComponentInitializer<T> build(@NonNull T component,
+                                            @NonNull HSComponentCallback callback);
+        }
     }
 
-    private static final class HSServiceInitializer implements Runnable {
+    private static abstract class HSComponentInitializer<T extends HSComponent> implements Runnable {
 
         @NonNull
-        private Context context;
+        protected final Context context;
         @NonNull
-        private HSService service;
+        protected final T component;
         @NonNull
-        private HSAppParams appParams;
+        protected final HSAppParams appParams;
         @NonNull
-        private HSServiceCallback serviceCallback;
-        @NonNull
-        private HSConnectorCallback connectorCallback;
+        protected final HSComponentCallback callback;
 
         private boolean isFinished = false;
 
-        public HSServiceInitializer(@NonNull Context context,
-                                    @NonNull HSService service,
-                                    @NonNull HSAppParams appParams,
-                                    @NonNull HSServiceCallback serviceCallback,
-                                    @NonNull HSConnectorCallback connectorCallback) {
+        public HSComponentInitializer(@NonNull Context context,
+                                      @NonNull T component,
+                                      @NonNull HSAppParams appParams,
+                                      @NonNull HSComponentCallback callback) {
             this.context = context;
-            this.service = service;
+            this.component = component;
             this.appParams = appParams;
-            this.serviceCallback = serviceCallback;
-            this.connectorCallback = connectorCallback;
+            this.callback = callback;
         }
 
         @Override
         public void run() {
-            HSLogger.logInfo(service.getName(), "Version: " + service.getVersion());
-            HSLogger.logInfo(service.getName(), "Initialization start");
+            HSLogger.logInfo(component.getName(), "Version: " + component.getVersion());
+            HSLogger.logInfo(component.getName(), "Initialization start");
             new Timer().schedule(new TimerTask() {
                 @Override
                 public void run() {
                     if (!isFinished) {
-                        HSLogger.logInfo(service.getName(), "Initialization timeout");
-                        serviceCallback.onFail(HSError.forService(service, "Timeout"));
+                        HSLogger.logInfo(component.getName(), "Initialization timeout");
+                        callback.onFail(HSError.forComponent(component, "Timeout"));
                         isFinished = true;
                     }
                 }
-            }, appParams.getServiceInitializeTimeoutMs());
-            service.start(context, appParams, new HSServiceCallback() {
+            }, appParams.getComponentInitializeTimeoutMs());
+            HSComponentCallback componentCallback = new HSComponentCallback() {
                 @Override
                 public void onFinished() {
-                    HSLogger.logInfo(service.getName(), "Initialization finished");
+                    HSLogger.logInfo(component.getName(), "Initialization finished");
                     if (!isFinished) {
-                        serviceCallback.onFinished();
+                        callback.onFinished();
                         isFinished = true;
                     }
                 }
 
                 @Override
                 public void onFail(@NonNull HSError error) {
-                    HSLogger.logInfo(service.getName(), "Initialization fail: " + error);
+                    HSLogger.logInfo(component.getName(), "Initialization fail: " + error);
                     if (!isFinished) {
-                        serviceCallback.onFinished();
+                        callback.onFail(error);
+                        isFinished = true;
                     }
                 }
-            }, connectorCallback);
+            };
+            doProcess(componentCallback);
+        }
+
+        abstract void doProcess(@NonNull HSComponentCallback callback);
+    }
+
+    private static final class HSConnectorInitializer extends HSComponentInitializer<HSConnector> implements Runnable {
+
+        public HSConnectorInitializer(@NonNull Context context,
+                                      @NonNull HSConnector component,
+                                      @NonNull HSAppParams appParams,
+                                      @NonNull HSComponentCallback callback) {
+            super(context, component, appParams, callback);
+        }
+
+        @Override
+        void doProcess(@NonNull HSComponentCallback callback) {
+            component.initialize(context, appParams, callback);
         }
     }
 
+    private static final class HSServiceInitializer extends HSComponentInitializer<HSService> implements Runnable {
+
+        @NonNull
+        private HSConnectorCallback connectorCallback;
+
+        public HSServiceInitializer(@NonNull Context context,
+                                    @NonNull HSService component,
+                                    @NonNull HSAppParams appParams,
+                                    @NonNull HSComponentCallback callback,
+                                    @NonNull HSConnectorCallback connectorCallback) {
+            super(context, component, appParams, callback);
+            this.connectorCallback = connectorCallback;
+        }
+
+        @Override
+        void doProcess(@NonNull HSComponentCallback callback) {
+            component.start(context, appParams, callback, connectorCallback);
+        }
+    }
 }

@@ -1,8 +1,10 @@
 package com.explorestack.hs.sdk.example;
 
 import android.content.Context;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.multidex.MultiDexApplication;
 
 import com.explorestack.hs.sdk.HSApp;
@@ -14,7 +16,11 @@ import com.explorestack.hs.sdk.connector.appodeal.HSAppodealConnector;
 import com.explorestack.hs.sdk.service.appsflyer.HSAppsflyerService;
 import com.explorestack.hs.sdk.service.firebase.HSFirebaseService;
 
+import java.util.List;
+
 public class ExampleApplication extends MultiDexApplication {
+
+    private static final String TAG = ExampleApplication.class.getSimpleName();
 
     private static boolean isInitializingHsApp = false;
 
@@ -51,14 +57,13 @@ public class ExampleApplication extends MultiDexApplication {
         //Initialize HSApp
         HSApp.initialize(context, appConfig, new HSAppInitializeListener() {
             @Override
-            public void onAppInitialized() {
+            public void onAppInitialized(@Nullable List<HSError> errors) {
+                if (errors != null) {
+                    for (HSError error : errors) {
+                        Log.e(TAG, "HSApp: [Error]: " + error.toString());
+                    }
+                }
                 //HSApp initialization finished, now you can initialize required SDK
-                isInitializingHsApp = false;
-            }
-
-            @Override
-            public void onAppInitializationFailed(@NonNull HSError error) {
-                //HSApp initialization failed
                 isInitializingHsApp = false;
             }
         });

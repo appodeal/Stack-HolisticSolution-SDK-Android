@@ -7,12 +7,8 @@ public class HSError {
     public static HSError NoServices = new HSError(1, "No services provided");
     public static HSError NoConnectors = new HSError(2, "No connectors provided");
 
-    public static HSError forService(@NonNull HSService service, @NonNull String message) {
-        return new HSError(1000, String.format("[%s]: %s", service.getName(), message));
-    }
-
-    public static HSError forConnector(@NonNull HSConnector service, @NonNull String message) {
-        return new HSError(1000, String.format("[%s]: %s", service.getName(), message));
+    public static HSError forComponent(@NonNull HSComponent component, @NonNull String message) {
+        return new HSError(1000, String.format("[%s]: %s", component.getName(), message));
     }
 
     private int code;

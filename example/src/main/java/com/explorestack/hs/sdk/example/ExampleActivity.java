@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.appodeal.ads.Appodeal;
@@ -12,22 +13,23 @@ import com.explorestack.hs.sdk.HSApp;
 import com.explorestack.hs.sdk.HSAppInitializeListener;
 import com.explorestack.hs.sdk.HSError;
 
+import java.util.List;
+
 public class ExampleActivity extends AppCompatActivity {
 
     private static final String TAG = ExampleActivity.class.getSimpleName();
 
     private final HSAppInitializeListener hsAppInitializeListener = new HSAppInitializeListener() {
         @Override
-        public void onAppInitialized() {
+        public void onAppInitialized(@Nullable List<HSError> errors) {
             Log.v(TAG, "HSApp: onAppInitialized");
-            // HSApp was successfully initialized and now you can initialize Appodeal SDK
+            if (errors != null) {
+                for (HSError error : errors) {
+                    Log.e(TAG, "HSApp: [Error]: " + error.toString());
+                }
+            }
+            // HSApp was initialized and now you can initialize Appodeal SDK
             initializeAppodeal(ExampleActivity.this);
-        }
-
-        @Override
-        public void onAppInitializationFailed(@NonNull HSError error) {
-            Log.e(TAG, String.format("HSApp: onAppInitializationFailed (%s)", error.toString()));
-            // HSApp initialization failed, more info can be found in 'error' object
         }
     };
 

@@ -6,14 +6,14 @@ import java.util.concurrent.TimeUnit;
 
 class HSAppParamsImpl implements HSAppParams {
 
-    private static final long DEF_SERVICE_INITIALIZE_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
+    private static final long DEF_COMPONENT_INITIALIZE_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
 
     private boolean isDebugEnabled;
-    private long serviceInitializeTimeout;
+    private long componentInitializeTimeout;
 
     HSAppParamsImpl(@NonNull HSAppConfig appConfig) {
         isDebugEnabled = appConfig.isDebugEnabled();
-        serviceInitializeTimeout = appConfig.getServiceInitializeTimeout();
+        componentInitializeTimeout = appConfig.getComponentInitializeTimeout();
     }
 
     @Override
@@ -22,9 +22,9 @@ class HSAppParamsImpl implements HSAppParams {
     }
 
     @Override
-    public long getServiceInitializeTimeoutMs() {
-        return serviceInitializeTimeout > 0
-                ? serviceInitializeTimeout
-                : DEF_SERVICE_INITIALIZE_TIMEOUT;
+    public long getComponentInitializeTimeoutMs() {
+        return componentInitializeTimeout > 0
+                ? componentInitializeTimeout
+                : DEF_COMPONENT_INITIALIZE_TIMEOUT;
     }
 }

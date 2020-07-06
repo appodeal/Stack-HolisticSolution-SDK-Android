@@ -24,4 +24,10 @@ public class HSLogger {
             Log.i(TAG, String.format("[%s]: %s", tag, object != null ? object.toString() : null));
         }
     }
+
+    public static void logError(@NonNull String tag, @Nullable Object object) {
+        if (isEnabled) {
+            Log.e(TAG, String.format("[%s]: %s", tag, object != null ? object.toString() : null));
+        }
+    }
 }

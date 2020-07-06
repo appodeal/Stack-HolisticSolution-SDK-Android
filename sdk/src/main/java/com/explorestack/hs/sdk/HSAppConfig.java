@@ -1,8 +1,10 @@
 package com.explorestack.hs.sdk;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class HSAppConfig {
@@ -11,7 +13,7 @@ public class HSAppConfig {
     private List<HSService> services;
     @Nullable
     private List<HSConnector> connectors;
-    private long serviceInitializeTimeout;
+    private long componentInitializeTimeout;
     private boolean isDebugEnabled;
 
     public HSAppConfig withServices(@Nullable HSService... services) {
@@ -21,9 +23,9 @@ public class HSAppConfig {
         return this;
     }
 
-    @Nullable
+    @NonNull
     List<HSService> getServices() {
-        return services;
+        return services == null ? Collections.<HSService>emptyList() : services;
     }
 
     public HSAppConfig withConnectors(@Nullable HSConnector... connectors) {
@@ -33,18 +35,18 @@ public class HSAppConfig {
         return this;
     }
 
-    @Nullable
+    @NonNull
     List<HSConnector> getConnectors() {
-        return connectors;
+        return connectors == null ? Collections.<HSConnector>emptyList() : connectors;
     }
 
-    public HSAppConfig setServiceInitializeTimeout(long serviceInitializeTimeout) {
-        this.serviceInitializeTimeout = serviceInitializeTimeout;
+    public HSAppConfig setComponentInitializeTimeout(long componentInitializeTimeout) {
+        this.componentInitializeTimeout = componentInitializeTimeout;
         return this;
     }
 
-    long getServiceInitializeTimeout() {
-        return serviceInitializeTimeout;
+    long getComponentInitializeTimeout() {
+        return componentInitializeTimeout;
     }
 
     public HSAppConfig setDebugEnabled(boolean debugEnabled) {

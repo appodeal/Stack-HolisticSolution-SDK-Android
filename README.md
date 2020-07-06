@@ -81,13 +81,8 @@ public class YourApplication extends Application {
         //Initialize HSApp
         HSApp.initialize(activity, appConfig, new HSAppInitializeListener() {
             @Override
-            public void onAppInitialized() {
+            public void onAppInitialized(@Nullable List<HSError> errors) {
                 //HSApp initialization finished, now you can initialize required SDK
-            }
-
-            @Override
-            public void onAppInitializationFailed(@NonNull HSError error) {
-                //HSApp initialization failed
             }
         });
     }

@@ -9,7 +9,7 @@ import androidx.annotation.Nullable;
 import com.explorestack.hs.sdk.HSAppParams;
 import com.explorestack.hs.sdk.HSConnectorCallback;
 import com.explorestack.hs.sdk.HSService;
-import com.explorestack.hs.sdk.HSServiceCallback;
+import com.explorestack.hs.sdk.HSComponentCallback;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
@@ -47,7 +47,7 @@ public class HSFirebaseService extends HSService {
     @Override
     public void start(@NonNull Context context,
                       @NonNull HSAppParams params,
-                      @NonNull final HSServiceCallback callback,
+                      @NonNull final HSComponentCallback callback,
                       @NonNull final HSConnectorCallback connectorCallback) {
         final FirebaseApp firebaseApp = FirebaseApp.initializeApp(context);
         if (firebaseApp == null) {

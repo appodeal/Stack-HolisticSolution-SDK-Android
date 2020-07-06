@@ -17,11 +17,11 @@ dependencies {
 ## Register Connector
 
 ```java
-public class MainActivity extends AppCompatActivity {
+public class YourApplication extends Application {
     ...
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public void onCreate() {
+        super.onCreate();
 
         //Create connector for Appodeal
         HSAppodealConnector appodealConnector = new HSAppodealConnector();
@@ -47,14 +47,14 @@ public class ExampleActivity extends AppCompatActivity {
 
     private final HSAppInitializeListener hsAppInitializeListener = new HSAppInitializeListener() {
         @Override
-        public void onAppInitialized() {
+        public void onAppInitialized(@Nullable List<HSError> errors) {
+            if (errors != null) {
+                for (HSError error : errors) {
+                    Log.e(TAG, "HSApp: [Error]: " + error.toString());
+                }
+            }
             // HSApp was successfully initialized and now you can initialize Appodeal SDK
             initializeAppodeal(ExampleActivity.this);
-        }
-
-        @Override
-        public void onAppInitializationFailed(@NonNull HSError error) {
-            // HSApp initialization failed, more info can be found in 'error' object
         }
     };
 

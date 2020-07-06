@@ -1,8 +1,13 @@
 package com.explorestack.hs.sdk.connector.appodeal;
 
+import android.content.Context;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.appodeal.ads.Appodeal;
+import com.explorestack.hs.sdk.HSAppParams;
+import com.explorestack.hs.sdk.HSComponentCallback;
 import com.explorestack.hs.sdk.HSConnector;
 
 import java.util.Map;
@@ -11,6 +16,13 @@ public class HSAppodealConnector extends HSConnector {
 
     public HSAppodealConnector() {
         super("Appodeal", Appodeal.getVersion());
+    }
+
+    @Override
+    public void initialize(@NonNull Context context,
+                           @NonNull HSAppParams params,
+                           @NonNull HSComponentCallback callback) {
+        callback.onFinished();
     }
 
     @Override

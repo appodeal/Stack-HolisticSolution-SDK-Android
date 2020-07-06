@@ -14,7 +14,7 @@ import com.explorestack.hs.sdk.HSAppParams;
 import com.explorestack.hs.sdk.HSConnectorCallback;
 import com.explorestack.hs.sdk.HSLogger;
 import com.explorestack.hs.sdk.HSService;
-import com.explorestack.hs.sdk.HSServiceCallback;
+import com.explorestack.hs.sdk.HSComponentCallback;
 
 import java.util.HashMap;
 import java.util.List;
@@ -42,7 +42,7 @@ public class HSAppsflyerService extends HSService {
     @Override
     public void start(@NonNull Context context,
                       @NonNull HSAppParams params,
-                      @NonNull HSServiceCallback callback,
+                      @NonNull HSComponentCallback callback,
                       @NonNull HSConnectorCallback connectorCallback) {
         if (TextUtils.isEmpty(devKey)) {
             callback.onFail(buildError("DevKey not provided"));
@@ -72,11 +72,11 @@ public class HSAppsflyerService extends HSService {
     private final class ConversionListener implements AppsFlyerConversionListener {
 
         @NonNull
-        private final HSServiceCallback callback;
+        private final HSComponentCallback callback;
         @NonNull
         private final HSConnectorCallback connectorCallback;
 
-        public ConversionListener(@NonNull HSServiceCallback callback,
+        public ConversionListener(@NonNull HSComponentCallback callback,
                                   @NonNull HSConnectorCallback connectorCallback) {
             this.callback = callback;
             this.connectorCallback = connectorCallback;
