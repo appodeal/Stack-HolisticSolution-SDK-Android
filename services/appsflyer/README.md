@@ -51,9 +51,10 @@ public class MainActivity extends AppCompatActivity {
 
 #### Service methods
 
-| Method                         | Description                                                                                                                 |
-|--------------------------------|-----------------------------------------------------------------------------------------------------------------------------|
-| setAppsFlyerConversionListener | Sets custom AppsFlyer `AppsFlyerConversionListener` which will be called when service receives appropriate AppsFlyer events |
+| Method                                     | Description                                                                                                                             |
+|--------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| setAppsFlyerConversionListener             | Sets custom AppsFlyer `AppsFlyerConversionListener` which will be called when service receives appropriate AppsFlyer events             |
+| setAppsFlyerInAppPurchaseValidatorListener | Sets custom AppsFlyer `AppsFlyerInAppPurchaseValidatorListener` which will be called when service receives appropriate AppsFlyer events | 
 
 ## Known issues
 

@@ -6,21 +6,22 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-class HSEventsDelegate {
+class HSEventsDispatcher {
 
-    private static final String TAG = HSEventsDelegate.class.getSimpleName();
+    private static final String TAG = HSEventsDispatcher.class.getSimpleName();
 
     @NonNull
     private HSAppInstance app;
     @NonNull
-    private List<HSEventsCallback> eventsCallbacks = new ArrayList<>();
+    private Map<HSComponent, HSEventsHandler> handlers = new HashMap<>();
     @Nullable
     private List<Pair<String, Map<String, Object>>> pendingEvents;
 
-    public HSEventsDelegate(@NonNull HSAppInstance app) {
+    public HSEventsDispatcher(@NonNull HSAppInstance app) {
         this.app = app;
     }
 
@@ -33,21 +34,21 @@ class HSEventsDelegate {
         }
     }
 
-    public void addCallback(@Nullable HSEventsCallback callback) {
-        if (callback != null) {
-            eventsCallbacks.add(callback);
+    public void addHandler(@NonNull HSComponent component, @Nullable HSEventsHandler handler) {
+        if (handler != null) {
+            handlers.put(component, handler);
         }
     }
 
-    public void removeCallback(@NonNull HSEventsCallback callback) {
-        eventsCallbacks.remove(callback);
+    public void removeHandler(@NonNull HSComponent component) {
+        handlers.remove(component);
     }
 
     public void logEvent(@NonNull String eventName, @Nullable Map<String, Object> params) {
         if (app.isInitialized()) {
-            for (HSEventsCallback callback : eventsCallbacks) {
-                HSLogger.logInfo(TAG, "[DelegateEvent]: to " + callback);
-                callback.onEvent(eventName, params);
+            for (Map.Entry<HSComponent, HSEventsHandler> entry : handlers.entrySet()) {
+                HSLogger.logInfo(TAG, "[DispatchEvent]: to " + entry.getKey().getName());
+                entry.getValue().onEvent(eventName, params);
             }
         } else {
             if (pendingEvents == null) {

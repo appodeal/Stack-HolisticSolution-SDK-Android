@@ -5,6 +5,7 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class HSApp {
@@ -37,6 +38,29 @@ public class HSApp {
 
     public static void logEvent(@NonNull String eventName, @Nullable Map<String, Object> params) {
         HSAppInstance.getInstance().logEvent(eventName, params);
+    }
+
+    public static void validateInAppPurchase(String publicKey,
+                                             String signature,
+                                             String purchaseData,
+                                             String price,
+                                             String currency,
+                                             HashMap<String, String> additionalParameters,
+                                             @Nullable HSInAppPurchaseValidateListener listener) {
+        HSInAppPurchase purchase = HSInAppPurchase.newBuilder()
+                .withPublicKey(publicKey)
+                .withSignature(signature)
+                .withPurchaseData(purchaseData)
+                .withPrice(price)
+                .withCurrency(currency)
+                .withAdditionalParams(additionalParameters)
+                .build();
+        validateInAppPurchase(purchase, listener);
+    }
+
+    public static void validateInAppPurchase(@NonNull HSInAppPurchase purchase,
+                                             @Nullable HSInAppPurchaseValidateListener listener) {
+        HSAppInstance.getInstance().validateInAppPurchase(purchase, listener);
     }
 
     private HSApp() {

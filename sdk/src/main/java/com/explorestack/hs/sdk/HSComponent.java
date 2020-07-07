@@ -12,6 +12,8 @@ public class HSComponent {
     @Nullable
     private final String version;
 
+    private boolean isEventsEnabled = true;
+
     public HSComponent(@NonNull String name, @Nullable String version) {
         this.name = name;
         this.version = version;
@@ -27,8 +29,21 @@ public class HSComponent {
         return version;
     }
 
+    public void setEventsEnabled(boolean enabled) {
+        isEventsEnabled = enabled;
+    }
+
+    public boolean isEventsEnabled() {
+        return isEventsEnabled;
+    }
+
     @Nullable
-    public HSEventsCallback getEventsCallback(@NonNull Context context) {
+    public HSEventsHandler createEventsHandler(@NonNull Context context) {
+        return null;
+    }
+
+    @Nullable
+    public HSIAPValidateHandler createIAPValidateHandler(@NonNull Context context) {
         return null;
     }
 

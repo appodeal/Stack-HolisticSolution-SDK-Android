@@ -9,11 +9,15 @@ import androidx.annotation.Nullable;
 
 import com.appsflyer.AFLogger;
 import com.appsflyer.AppsFlyerConversionListener;
+import com.appsflyer.AppsFlyerInAppPurchaseValidatorListener;
 import com.appsflyer.AppsFlyerLib;
 import com.explorestack.hs.sdk.HSAppParams;
 import com.explorestack.hs.sdk.HSComponentCallback;
 import com.explorestack.hs.sdk.HSConnectorCallback;
-import com.explorestack.hs.sdk.HSEventsCallback;
+import com.explorestack.hs.sdk.HSEventsHandler;
+import com.explorestack.hs.sdk.HSIAPValidateCallback;
+import com.explorestack.hs.sdk.HSIAPValidateHandler;
+import com.explorestack.hs.sdk.HSInAppPurchase;
 import com.explorestack.hs.sdk.HSLogger;
 import com.explorestack.hs.sdk.HSService;
 
@@ -31,6 +35,8 @@ public class HSAppsflyerService extends HSService {
     private AppsFlyerConversionListener conversionListener;
     @Nullable
     private AppsFlyerConversionListener externalConversionListener;
+    @Nullable
+    private AppsFlyerInAppPurchaseValidatorListener externalPurchaseValidatorListener;
 
     public HSAppsflyerService(@NonNull String devKey) {
         this(devKey, null);
@@ -42,8 +48,12 @@ public class HSAppsflyerService extends HSService {
         this.conversionKeys = conversionKeys;
     }
 
-    public void setAppsFlyerConversionListener(@Nullable AppsFlyerConversionListener conversionListener) {
-        this.externalConversionListener = conversionListener;
+    public void setAppsFlyerConversionListener(@Nullable AppsFlyerConversionListener listener) {
+        this.externalConversionListener = listener;
+    }
+
+    public void setAppsFlyerInAppPurchaseValidatorListener(@Nullable AppsFlyerInAppPurchaseValidatorListener listener) {
+        this.externalPurchaseValidatorListener = listener;
     }
 
     @Override
@@ -78,8 +88,14 @@ public class HSAppsflyerService extends HSService {
 
     @Nullable
     @Override
-    public HSEventsCallback getEventsCallback(@NonNull Context context) {
+    public HSEventsHandler createEventsHandler(@NonNull Context context) {
         return new HSEventsDelegate(context);
+    }
+
+    @Nullable
+    @Override
+    public HSIAPValidateHandler createIAPValidateHandler(@NonNull Context context) {
+        return new HSIAPValidateDelegate(context);
     }
 
     private final class ConversionListener implements AppsFlyerConversionListener {
@@ -143,7 +159,7 @@ public class HSAppsflyerService extends HSService {
         }
     }
 
-    private final class HSEventsDelegate implements HSEventsCallback {
+    private final class HSEventsDelegate implements HSEventsHandler {
 
         @NonNull
         private final Context context;
@@ -153,8 +169,53 @@ public class HSAppsflyerService extends HSService {
         }
 
         @Override
-        public void onEvent(@NonNull String eventName, @Nullable Map<String, Object> params) {
+        public void onEvent(@NonNull String eventName,
+                            @Nullable Map<String, Object> params) {
             AppsFlyerLib.getInstance().trackEvent(context, eventName, params);
+        }
+    }
+
+    private final class HSIAPValidateDelegate implements HSIAPValidateHandler, AppsFlyerInAppPurchaseValidatorListener {
+        @NonNull
+        private final Context context;
+        @Nullable
+        private HSIAPValidateCallback pendingCallback;
+
+        public HSIAPValidateDelegate(@NonNull Context context) {
+            this.context = context;
+            AppsFlyerLib.getInstance().registerValidatorListener(context, this);
+        }
+
+        @Override
+        public void onValidateInAppPurchase(@NonNull HSInAppPurchase purchase,
+                                            @NonNull HSIAPValidateCallback callback) {
+            pendingCallback = callback;
+            AppsFlyerLib.getInstance().validateAndTrackInAppPurchase(
+                    context, purchase.getPublicKey(), purchase.getSignature(),
+                    purchase.getPurchaseData(), purchase.getPrice(),
+                    purchase.getCurrency(), purchase.getAdditionalParameters());
+        }
+
+        @Override
+        public void onValidateInApp() {
+            if (pendingCallback != null) {
+                pendingCallback.onSuccess();
+                pendingCallback = null;
+            }
+            if (externalPurchaseValidatorListener != null) {
+                externalPurchaseValidatorListener.onValidateInApp();
+            }
+        }
+
+        @Override
+        public void onValidateInAppFailure(String s) {
+            if (pendingCallback != null) {
+                pendingCallback.onFail(buildError(s));
+                pendingCallback = null;
+            }
+            if (externalPurchaseValidatorListener != null) {
+                externalPurchaseValidatorListener.onValidateInAppFailure(s);
+            }
         }
     }
 }

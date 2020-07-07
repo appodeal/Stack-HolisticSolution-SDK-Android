@@ -5,7 +5,7 @@ import androidx.annotation.Nullable;
 
 import java.util.Map;
 
-public interface HSEventsCallback {
+public interface HSEventsHandler {
 
     void onEvent(@NonNull String eventName, @Nullable Map<String, Object> params);
 }

@@ -12,7 +12,7 @@ import androidx.annotation.Nullable;
 import com.explorestack.hs.sdk.HSAppParams;
 import com.explorestack.hs.sdk.HSComponentCallback;
 import com.explorestack.hs.sdk.HSConnectorCallback;
-import com.explorestack.hs.sdk.HSEventsCallback;
+import com.explorestack.hs.sdk.HSEventsHandler;
 import com.explorestack.hs.sdk.HSService;
 import com.explorestack.hs.sdk.HSUtils;
 import com.facebook.FacebookSdk;
@@ -76,11 +76,11 @@ public class HSFacebookService extends HSService {
 
     @Nullable
     @Override
-    public HSEventsCallback getEventsCallback(@NonNull Context context) {
+    public HSEventsHandler createEventsHandler(@NonNull Context context) {
         return new HSEventsDelegate();
     }
 
-    private final class HSEventsDelegate implements HSEventsCallback {
+    private final class HSEventsDelegate implements HSEventsHandler {
 
         @Override
         public void onEvent(@NonNull String eventName, @Nullable Map<String, Object> params) {

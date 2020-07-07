@@ -13,6 +13,8 @@ import com.appodeal.ads.Appodeal;
 import com.explorestack.hs.sdk.HSApp;
 import com.explorestack.hs.sdk.HSAppInitializeListener;
 import com.explorestack.hs.sdk.HSError;
+import com.explorestack.hs.sdk.HSInAppPurchase;
+import com.explorestack.hs.sdk.HSInAppPurchaseValidateListener;
 
 import java.util.HashMap;
 import java.util.List;
@@ -72,6 +74,48 @@ public class ExampleActivity extends AppCompatActivity {
 
         // Send event to all connected analytics services
         HSApp.logEvent("hs_sdk_example_test_event", params);
+    }
+
+    /**
+     * Example of purchase validating
+     */
+    public void validatePurchase(View view) {
+        String price = "10";
+        String currency = "USD";
+        Map<String, String> additionalEventValues = new HashMap<>();
+        additionalEventValues.put("some_parameter", "some_value");
+
+        // Create new HSInAppPurchase
+        HSInAppPurchase purchase = HSInAppPurchase.newBuilder()
+                .withPublicKey("YOUR_PUBLIC_KEY")
+                .withSignature("YOUR_SIGNATURE") //e.g: purchase.getSignature()
+                .withPurchaseData("YOUR_PURCHASE_DATA") //e.g: purchase.getOriginalJson()
+                .withPrice(price)
+                .withCurrency(currency)
+                .withAdditionalParams(additionalEventValues)
+                .build();
+
+        // Validate InApp purchase
+        HSApp.validateInAppPurchase(purchase, new HSInAppPurchaseValidateListener() {
+            @Override
+            public void onInAppPurchaseValidateSuccess(@NonNull HSInAppPurchase purchase,
+                                                       @Nullable List<HSError> errors) {
+                Log.v(TAG, "HSApp: onInAppPurchaseValidateSuccess");
+                if (errors != null) {
+                    for (HSError error : errors) {
+                        Log.e(TAG, "HSApp: [onInAppPurchaseValidateFail]: " + error.toString());
+                    }
+                }
+            }
+
+            @Override
+            public void onInAppPurchaseValidateFail(@NonNull List<HSError> errors) {
+                Log.v(TAG, "HSApp: onInAppPurchaseValidateFail");
+                for (HSError error : errors) {
+                    Log.e(TAG, "HSApp: [onInAppPurchaseValidateFail]: " + error.toString());
+                }
+            }
+        });
     }
 
     /**

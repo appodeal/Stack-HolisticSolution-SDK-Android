@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
@@ -33,7 +32,10 @@ class HSAppInstance {
     }
 
     @NonNull
-    private final HSEventsDelegate eventsDelegate = new HSEventsDelegate(this);
+    private final HSEventsDispatcher eventsDispatcher = new HSEventsDispatcher(this);
+    @NonNull
+    private final HSIAPValidateDispatcher inAppPurchaseValidateDispatcher =
+            new HSIAPValidateDispatcher(this);
     @NonNull
     private final List<HSAppInitializeListener> listeners = new CopyOnWriteArrayList<>();
 
@@ -66,7 +68,8 @@ class HSAppInstance {
                         listener.onAppInitialized(errors);
                     }
                     notifyInitialized(errors);
-                    eventsDelegate.dispatchPendingEvents();
+                    eventsDispatcher.dispatchPendingEvents();
+                    inAppPurchaseValidateDispatcher.dispatchPendingPurchase();
                 }
             };
             initializer = new HSAppInitializer(targetContext, this, config, listenerDelegate);
@@ -99,12 +102,22 @@ class HSAppInstance {
     }
 
     public void logEvent(@NonNull String eventName, @Nullable Map<String, Object> params) {
-        eventsDelegate.logEvent(eventName, params);
+        eventsDispatcher.logEvent(eventName, params);
+    }
+
+    public void validateInAppPurchase(@NonNull HSInAppPurchase purchase,
+                                      @Nullable HSInAppPurchaseValidateListener listener) {
+        inAppPurchaseValidateDispatcher.validateInAppPurchase(purchase, listener);
     }
 
     @NonNull
-    public HSEventsDelegate getEventsDelegate() {
-        return eventsDelegate;
+    public HSEventsDispatcher getEventsDispatcher() {
+        return eventsDispatcher;
+    }
+
+    @NonNull
+    public HSIAPValidateDispatcher getInAppPurchaseValidateDispatcher() {
+        return inAppPurchaseValidateDispatcher;
     }
 
     private static class HSAppInitializer extends Thread {
@@ -250,7 +263,7 @@ class HSAppInstance {
         public void run() {
             HSLogger.logInfo(component.getName(), "Version: " + component.getVersion());
             HSLogger.logInfo(component.getName(), "Initialization start");
-            new Timer().schedule(new TimerTask() {
+            HSUtils.startTimeout(appParams.getComponentInitializeTimeoutMs(), new TimerTask() {
                 @Override
                 public void run() {
                     if (!isFinished) {
@@ -259,7 +272,7 @@ class HSAppInstance {
                         isFinished = true;
                     }
                 }
-            }, appParams.getComponentInitializeTimeoutMs());
+            });
             HSComponentCallback componentCallback = new HSComponentCallback() {
                 @Override
                 public void onFinished() {
@@ -279,8 +292,13 @@ class HSAppInstance {
                     }
                 }
             };
-            app.getEventsDelegate()
-                    .addCallback(component.getEventsCallback(context.getApplicationContext()));
+            final Context targetContext = context.getApplicationContext();
+            if (component.isEventsEnabled()) {
+                app.getEventsDispatcher().addHandler(
+                        component, component.createEventsHandler(targetContext));
+            }
+            app.getInAppPurchaseValidateDispatcher().addHandler(
+                    component, component.createIAPValidateHandler(targetContext));
             doProcess(componentCallback);
         }
 

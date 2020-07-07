@@ -11,6 +11,14 @@
             android:layout_height="wrap_content"
             android:onClick="logEvent"
             android:text="Send test event"
-            tools:ignore="HardcodedText" />
+            tools:ignore="ButtonStyle,HardcodedText" />
+
+    <Button
+            android:id="@+id/btnValidatePurchase"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="validatePurchase"
+            android:text="Validate test purchase"
+            tools:ignore="ButtonStyle,HardcodedText" />
 
 </LinearLayout>

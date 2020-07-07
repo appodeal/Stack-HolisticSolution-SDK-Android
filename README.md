@@ -7,6 +7,7 @@ Stack Holistic Solution SDK for Android simplifies the collection and transfer o
 * [Import SDK](#import-sdk)
 * [Initialize SDK](#initialize-sdk)
 * [Events](#events)
+* [In-App purchase validation](#in-app-purchase-validation)
 * [Available Services](services/README.md)
 * [Available Connectors](connectors/README.md)
   
@@ -79,13 +80,16 @@ public class YourApplication extends Application {
         //Create service for AppsFlyer
         HSAppsflyerService appsflyerService = new HSAppsflyerService(YOUR_APPSFLYER_DEV_KEY);
 
+        //Create Facebook service
+        HSFacebookService facebookService = new HSFacebookService();
+
         //Create service for Firebase
         HSFirebaseService firebaseService = new HSFirebaseService();
 
         //Create HSApp configuration
         HSAppConfig appConfig = new HSAppConfig()
                 .withConnectors(appodealConnector)
-                .withServices(appsflyerService, firebaseService);
+                .withServices(appsflyerService, facebookService, firebaseService);
         
         //Initialize HSApp
         HSApp.initialize(activity, appConfig, new HSAppInitializeListener() {
@@ -146,3 +150,51 @@ HSApp.logEvent("hs_sdk_example_test_event", params);
 > Event parameters can only be strings and numbers
 
 [Code example](example/src/main/java/com/explorestack/hs/sdk/example/ExampleActivity.java#L67)
+
+#### Disabling Events for specific service or connector
+
+If you want to disable Events for specific service or connector, you can call `setEventsEnabled` on appropriate component:
+
+```java
+HSFacebookService facebookService = new HSFacebookService();
+//Disable service Events 
+facebookService.setEventsEnabled(false);
+```
+
+## In-App purchase validation
+
+Holistic Solution SDK allows you to unify In-App purchase validation using a single method:
+
+```java
+// Purchase object is returned by Google API in onPurchasesUpdated() callback
+public void validatePurchase(Purchase purchase) {
+    // Create new HSInAppPurchase
+    HSInAppPurchase purchase = HSInAppPurchase.newBuilder()
+            .withPublicKey("YOUR_PUBLIC_KEY")
+            .withSignature(purchase.getSignature())
+            .withPurchaseData(purchase.getOriginalJson())
+            .withPrice(...)
+            .withCurrency(...)
+            .withAdditionalParams(...)
+            .build();
+
+    // Validate InApp purchase
+    HSApp.validateInAppPurchase(purchase, new HSInAppPurchaseValidateListener() {
+        @Override
+        public void onInAppPurchaseValidateSuccess(@NonNull HSInAppPurchase purchase,
+                                                   @Nullable List<HSError> errors) {
+            // In-App purchase validation was validated successfully by at least one
+            // connected service
+        }
+
+        @Override
+        public void onInAppPurchaseValidateFail(@NonNull List<HSError> errors) {
+            // In-App purchase validation was failed by all connected service
+        }
+    });
+}
+```
+
+> In-App purchase validation runs by FIFO queue in a single thread
+
+[Code example](example/src/main/java/com/explorestack/hs/sdk/example/ExampleActivity.java#L82)
