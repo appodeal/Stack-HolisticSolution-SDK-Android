@@ -83,7 +83,7 @@ public class HSAppsflyerService extends HSService {
         }
         //We need track started activities state only once
         activityTracker.stop(context);
-        connectorCallback.setAttributionId("appsflyer_id", appsFlyer.getAppsFlyerUID(context));
+        connectorCallback.setAttributionId("attribution_id", appsFlyer.getAppsFlyerUID(context));
     }
 
     @Nullable
