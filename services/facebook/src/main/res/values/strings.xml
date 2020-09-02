@@ -1,4 +1,3 @@
 <resources>
     <string name="facebook_app_id">HS_FB_NOT_REPLACED</string>
-    <string name="fb_login_protocol_scheme">HS_FB_NOT_REPLACED</string>
 </resources>
