@@ -19,7 +19,7 @@ Open your `/app/res/values/strings.xml` file and add the following lines (rememb
 Add a `meta-data` element to the application element:
 
 ```xml
-<application android:label="@string/app_name" ...>
+<application ...>
     ...
     <meta-data
         android:name="com.facebook.sdk.ApplicationId"
