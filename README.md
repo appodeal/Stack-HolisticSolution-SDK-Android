@@ -57,7 +57,7 @@ dependencies {
     //AppsFlyer service
     implementation 'com.explorestack.hs.sdk.service:appsflyer:1.0.0'
     //Facebook service
-    implementation 'com.explorestack.hs.sdk.service:facebook:1.0.0'
+    implementation 'com.explorestack.hs.sdk.service:facebook:1.0.1'
     //Firebase service
     implementation 'com.explorestack.hs.sdk.service:firebase:1.0.0'
 }

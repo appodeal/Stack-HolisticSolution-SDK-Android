@@ -1,6 +1,6 @@
 # Facebook Service for Holistic Solution SDK
 
-> Note that HS Facebook Service will include 'facebook-android-sdk' dependencies independently
+> Note that HS Facebook Service will include only 'facebook-core' dependency independently
 
 ## Configure Your Facebook App
 
@@ -14,8 +14,21 @@ Open your `/app/res/values/strings.xml` file and add the following lines (rememb
 
 ```xml
 <string name="facebook_app_id">[APP_ID]</string>
-<string name="fb_login_protocol_scheme">fb[APP_ID]</string>
 ```
+
+Add a `meta-data` element to the application element:
+
+```xml
+<application android:label="@string/app_name" ...>
+    ...
+    <meta-data
+        android:name="com.facebook.sdk.ApplicationId"
+        android:value="@string/facebook_app_id"/>
+    ...
+</application>
+```
+
+> If you use Facebook Unity SDK and configure it via UI, you probably can skip the last step, since Facebook Unity SDK automatically add required meta-data to AndroidManifest.xml
 
 ## Import Service
 
@@ -23,7 +36,7 @@ Open your `/app/res/values/strings.xml` file and add the following lines (rememb
 dependencies {
     // ... other project dependencies
 
-    implementation 'com.explorestack.hs.sdk.service:facebook:1.0.0'
+    implementation 'com.explorestack.hs.sdk.service:facebook:1.0.1'
 }
 ```
 

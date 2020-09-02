@@ -51,14 +51,6 @@ public class HSFacebookService extends HSService {
                 callback.onFail(buildError("R.string.facebook_app_id string resource not overridden"));
                 return;
             }
-            String fbLoginProtocolScheme = context.getString(R.string.fb_login_protocol_scheme);
-            if (TextUtils.isEmpty(fbLoginProtocolScheme)
-                    || NOT_REPLACED_ID_PLACEHOLDER.equals(fbLoginProtocolScheme)) {
-                callback.onFail(
-                        buildError(
-                                "R.string.fb_login_protocol_scheme string resource not overridden"));
-                return;
-            }
         } catch (Throwable e) {
             e.printStackTrace();
             callback.onFail(buildError("Unknown error"));
