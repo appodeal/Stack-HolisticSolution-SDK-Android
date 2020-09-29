@@ -17,7 +17,7 @@ Please, visit this [link](https://support.appsflyer.com/hc/en-us/articles/207032
 dependencies {
     // ... other project dependencies
 
-    implementation 'com.explorestack.hs.sdk.service:appsflyer:1.0.0'
+    implementation 'com.explorestack.hs.sdk.service:appsflyer:1.0.1'
 }
 ```
 
