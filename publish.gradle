@@ -56,6 +56,11 @@ task uploadToArtifactory(group: PUBLISH_GROUP) {
     finalizedBy artifactoryPublish
 }
 
+task uploadToMavenLocal(group: PUBLISH_GROUP) {
+    dependsOn prepareForPublishing
+    finalizedBy publishToMavenLocal
+}
+
 void includeRemoteDependencies(String dependenciesFilePath, Node dependenciesNode) {
     // If dependencies info file exists than process it
     def dependenciesFile = file(dependenciesFilePath)

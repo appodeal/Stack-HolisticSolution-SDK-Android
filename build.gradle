@@ -16,6 +16,7 @@ allprojects {
     repositories {
         google()
         jcenter()
+        mavenLocal()
     }
 }
 
@@ -30,6 +31,17 @@ task publishAllToArtifactory {
     }
     collectConnectors().collect {
         dependsTasks.add(":connectors:${it.name}:uploadToArtifactory")
+    }
+    finalizedBy(dependsTasks.toArray())
+}
+
+task publishAllToMavenLocal {
+    List<String> dependsTasks = [':sdk:uploadToMavenLocal']
+    collectServices().forEach {
+        dependsTasks.add(":services:${it.name}:uploadToMavenLocal")
+    }
+    collectConnectors().collect {
+        dependsTasks.add(":connectors:${it.name}:uploadToMavenLocal")
     }
     finalizedBy(dependsTasks.toArray())
 }
