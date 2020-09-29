@@ -1,6 +1,5 @@
 package com.explorestack.hs.sdk.service.appsflyer;
 
-import android.app.Activity;
 import android.content.Context;
 import android.text.TextUtils;
 
@@ -72,17 +71,9 @@ public class HSAppsflyerService extends HSService {
         }
         conversionListener = new ConversionListener(callback, connectorCallback);
         appsFlyer.init(devKey, conversionListener, context);
+        appsFlyer.trackEvent(context, null, null);
+        appsFlyer.registerConversionListener(context, conversionListener);
         appsFlyer.startTracking(context, devKey);
-
-        //Service will not receive conversion data if any activity was started before service initialization
-        HSAppsflyerServiceActivityTracker activityTracker =
-                HSAppsflyerServiceActivityTracker.getInstance();
-        final Activity lastCreatedActivity = activityTracker.getLastCreatedActivity();
-        if (lastCreatedActivity != null) {
-            appsFlyer.trackAppLaunch(lastCreatedActivity, devKey);
-        }
-        //We need track started activities state only once
-        activityTracker.stop(context);
         connectorCallback.setAttributionId("attribution_id", appsFlyer.getAppsFlyerUID(context));
     }
 

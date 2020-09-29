@@ -13,9 +13,5 @@
                 <action android:name="com.android.vending.INSTALL_REFERRER" />
             </intent-filter>
         </receiver>
-        <provider
-                android:name=".HSAppsflyerServiceContentProvider"
-                android:authorities="${applicationId}.AppSessionManagerContentProvider"
-                android:exported="false" />
     </application>
 </manifest>
