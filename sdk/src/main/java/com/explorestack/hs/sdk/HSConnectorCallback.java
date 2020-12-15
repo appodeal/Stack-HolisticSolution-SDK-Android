@@ -2,7 +2,6 @@ package com.explorestack.hs.sdk;
 
 import android.content.Context;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.Map;
@@ -17,5 +16,5 @@ public interface HSConnectorCallback {
 
     void setExtra(@Nullable Map<String, Object> extra);
 
-    void trackInApp(@NonNull Context context, @Nullable String price, @Nullable String currency);
+    void trackInApp(@Nullable Context context, @Nullable HSInAppPurchase purchase);
 }

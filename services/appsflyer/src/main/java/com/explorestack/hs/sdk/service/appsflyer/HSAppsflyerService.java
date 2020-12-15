@@ -31,7 +31,7 @@ public class HSAppsflyerService extends HSService {
     @Nullable
     private final List<String> conversionKeys;
     @Nullable
-    private HSConnectorCallback connectorCallback;
+    private AppsFlyerConversionListener conversionListener;
     @Nullable
     private AppsFlyerConversionListener externalConversionListener;
     @Nullable
@@ -64,16 +64,15 @@ public class HSAppsflyerService extends HSService {
             callback.onFail(buildError("DevKey not provided"));
             return;
         }
-        this.connectorCallback = connectorCallback;
         final AppsFlyerLib appsFlyer = AppsFlyerLib.getInstance();
         appsFlyer.setDebugLog(params.isDebugEnabled());
         if (HSLogger.isEnabled()) {
             appsFlyer.setLogLevel(AFLogger.LogLevel.VERBOSE);
         }
-        AppsFlyerConversionListener listener = new ConversionListener(callback, connectorCallback);
-        appsFlyer.init(devKey, listener, context);
+        conversionListener = new ConversionListener(callback, connectorCallback);
+        appsFlyer.init(devKey, conversionListener, context);
         appsFlyer.trackEvent(context, null, null);
-        appsFlyer.registerConversionListener(context, listener);
+        appsFlyer.registerConversionListener(context, conversionListener);
         appsFlyer.startTracking(context, devKey);
         connectorCallback.setAttributionId("attribution_id", appsFlyer.getAppsFlyerUID(context));
     }
@@ -151,7 +150,7 @@ public class HSAppsflyerService extends HSService {
         }
     }
 
-    private static final class HSEventsDelegate implements HSEventsHandler {
+    private final class HSEventsDelegate implements HSEventsHandler {
 
         @NonNull
         private final Context context;
@@ -172,10 +171,6 @@ public class HSAppsflyerService extends HSService {
         private final Context context;
         @Nullable
         private HSIAPValidateCallback pendingCallback;
-        @Nullable
-        private String price;
-        @Nullable
-        private String currency;
 
         public HSIAPValidateDelegate(@NonNull Context context) {
             this.context = context;
@@ -185,22 +180,15 @@ public class HSAppsflyerService extends HSService {
         @Override
         public void onValidateInAppPurchase(@NonNull HSInAppPurchase purchase,
                                             @NonNull HSIAPValidateCallback callback) {
-            price = purchase.getPrice();
-            currency = purchase.getCurrency();
             pendingCallback = callback;
             AppsFlyerLib.getInstance().validateAndTrackInAppPurchase(
                     context, purchase.getPublicKey(), purchase.getSignature(),
-                    purchase.getPurchaseData(), price, currency,
-                    purchase.getAdditionalParameters());
+                    purchase.getPurchaseData(), purchase.getPrice(),
+                    purchase.getCurrency(), purchase.getAdditionalParameters());
         }
 
         @Override
         public void onValidateInApp() {
-            if (connectorCallback != null) {
-                connectorCallback.trackInApp(context, price, currency);
-                price = null;
-                currency = null;
-            }
             if (pendingCallback != null) {
                 pendingCallback.onSuccess();
                 pendingCallback = null;

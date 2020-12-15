@@ -50,12 +50,11 @@ class HSConnectorDelegate implements HSConnectorCallback {
     }
 
     @Override
-    public void trackInApp(@NonNull Context context,
-                           @Nullable String price,
-                           @Nullable String currency) {
-        HSLogger.logInfo("trackInApp", String.format("%s %s", price, currency));
+    public void trackInApp(@Nullable Context context,
+                           @Nullable HSInAppPurchase purchase) {
+        HSLogger.logInfo("trackInApp", purchase);
         for (HSConnector connector : children) {
-            connector.trackInApp(context, price, currency);
+            connector.trackInApp(context, purchase);
         }
     }
 }

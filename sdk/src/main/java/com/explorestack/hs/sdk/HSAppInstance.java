@@ -22,6 +22,7 @@ class HSAppInstance {
 
     private static final String TAG = HSApp.class.getSimpleName();
 
+    @SuppressLint("StaticFieldLeak")
     private static HSAppInstance instance;
 
     public static HSAppInstance getInstance() {
@@ -39,7 +40,10 @@ class HSAppInstance {
     @NonNull
     private final List<HSAppInitializeListener> listeners = new CopyOnWriteArrayList<>();
 
-    @SuppressLint("StaticFieldLeak")
+    @Nullable
+    private Context targetContext;
+    @Nullable
+    private HSConnectorDelegate connectorDelegate;
     @Nullable
     private HSAppInitializer initializer;
     private boolean isInitialized = false;
@@ -52,7 +56,6 @@ class HSAppInstance {
                            @NonNull HSAppConfig config,
                            @Nullable final HSAppInitializeListener listener) {
         if (initializer == null) {
-            final Context targetContext = context.getApplicationContext();
             final HSAppInitializeListener listenerDelegate = new HSAppInitializeListener() {
                 @Override
                 public void onAppInitialized(@Nullable List<HSError> errors) {
@@ -72,7 +75,9 @@ class HSAppInstance {
                     inAppPurchaseValidateDispatcher.dispatchPendingPurchase();
                 }
             };
-            initializer = new HSAppInitializer(targetContext, this, config, listenerDelegate);
+            connectorDelegate = new HSConnectorDelegate(config.getConnectors());
+            targetContext = context.getApplicationContext();
+            initializer = new HSAppInitializer(targetContext, this, config, connectorDelegate, listenerDelegate);
             initializer.start();
         }
     }
@@ -120,29 +125,42 @@ class HSAppInstance {
         return inAppPurchaseValidateDispatcher;
     }
 
-    private static class HSAppInitializer extends Thread {
+    @Nullable
+    public Context getContext() {
+        return targetContext;
+    }
+
+    @Nullable
+    public HSConnectorDelegate getConnectorDelegate() {
+        return connectorDelegate;
+    }
+
+    private static final class HSAppInitializer extends Thread {
 
         private static final Executor executor = Executors.newCachedThreadPool();
 
-
         @NonNull
-        private Context context;
+        private final Context context;
         @NonNull
-        private HSAppInstance app;
+        private final HSAppInstance app;
         @NonNull
-        private HSAppConfig appConfig;
+        private final HSAppConfig appConfig;
         @NonNull
-        private HSAppInitializeListener listener;
+        private final HSConnectorDelegate connectorDelegate;
+        @NonNull
+        private final HSAppInitializeListener listener;
         @Nullable
         private List<HSError> errors;
 
         public HSAppInitializer(@NonNull Context context,
                                 @NonNull HSAppInstance app,
                                 @NonNull HSAppConfig appConfig,
+                                @NonNull HSConnectorDelegate connectorDelegate,
                                 @NonNull HSAppInitializeListener listener) {
             this.context = context;
             this.app = app;
             this.appConfig = appConfig;
+            this.connectorDelegate = connectorDelegate;
             this.listener = listener;
         }
 
@@ -166,7 +184,6 @@ class HSAppInstance {
                 }
             });
             // Service initialization
-            final HSConnectorDelegate connectorDelegate = new HSConnectorDelegate(connectors);
             initializeComponents(services, new HSComponentInitializerBuilder<HSService>() {
                 @Override
                 public HSComponentInitializer<HSService> build(@NonNull HSService component,
