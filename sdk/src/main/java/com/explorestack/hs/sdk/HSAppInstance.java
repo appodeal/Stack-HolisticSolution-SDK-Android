@@ -324,7 +324,7 @@ class HSAppInstance {
     private static final class HSServiceInitializer extends HSComponentInitializer<HSService> implements Runnable {
 
         @NonNull
-        private HSConnectorCallback connectorCallback;
+        private final HSConnectorCallback connectorCallback;
 
         public HSServiceInitializer(@NonNull Context context,
                                     @NonNull HSAppInstance app,

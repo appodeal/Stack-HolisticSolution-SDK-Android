@@ -56,4 +56,18 @@ public class HSAppodealConnector extends HSConnector {
             }
         }
     }
+
+    @Override
+    public void trackInApp(@NonNull Context context,
+                           @Nullable String price,
+                           @Nullable String currency) {
+        if (price != null && currency != null) {
+            try {
+                double doublePrice = Double.parseDouble(price);
+                Appodeal.trackInAppPurchase(context, doublePrice, currency);
+            } catch (Throwable throwable) {
+                throwable.printStackTrace();
+            }
+        }
+    }
 }

@@ -1,5 +1,7 @@
 package com.explorestack.hs.sdk;
 
+import android.content.Context;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -44,6 +46,16 @@ class HSConnectorDelegate implements HSConnectorCallback {
         HSLogger.logInfo("setData", extra);
         for (HSConnector connector : children) {
             connector.setExtra(extra);
+        }
+    }
+
+    @Override
+    public void trackInApp(@NonNull Context context,
+                           @Nullable String price,
+                           @Nullable String currency) {
+        HSLogger.logInfo("trackInApp", String.format("%s %s", price, currency));
+        for (HSConnector connector : children) {
+            connector.trackInApp(context, price, currency);
         }
     }
 }
