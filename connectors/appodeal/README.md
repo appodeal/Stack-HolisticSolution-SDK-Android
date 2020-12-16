@@ -10,7 +10,7 @@ Please, follow this [guide](https://wiki.appodeal.com/display/DE/Android+SDK.+In
 dependencies {
     // ... other project dependencies
 
-    implementation 'com.explorestack.hs.sdk.connector:appodeal:1.0.0'
+    implementation 'com.explorestack.hs.sdk.connector:appodeal:1.0.1'
 }
 ```
 
