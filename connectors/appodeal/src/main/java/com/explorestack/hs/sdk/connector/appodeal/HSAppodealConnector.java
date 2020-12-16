@@ -9,6 +9,7 @@ import com.appodeal.ads.Appodeal;
 import com.explorestack.hs.sdk.HSAppParams;
 import com.explorestack.hs.sdk.HSComponentCallback;
 import com.explorestack.hs.sdk.HSConnector;
+import com.explorestack.hs.sdk.HSInAppPurchase;
 
 import java.util.Map;
 
@@ -53,6 +54,18 @@ public class HSAppodealConnector extends HSConnector {
         if (extra != null) {
             for (Map.Entry<String, Object> entry : extra.entrySet()) {
                 setExtra(entry.getKey(), String.valueOf(entry.getValue()));
+            }
+        }
+    }
+
+    @Override
+    public void trackInApp(@Nullable Context context, @Nullable HSInAppPurchase purchase) {
+        if (context != null && purchase != null) {
+            try {
+                double doublePrice = Double.parseDouble(purchase.getPrice());
+                Appodeal.trackInAppPurchase(context, doublePrice, purchase.getCurrency());
+            } catch (Throwable throwable) {
+                throwable.printStackTrace();
             }
         }
     }

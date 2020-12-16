@@ -42,6 +42,11 @@ public class HSInAppPurchase {
         return new HSInAppPurchase().new Builder();
     }
 
+    @Override
+    public String toString() {
+        return "price='" + price + '\'' + ", currency='" + currency + '\'';
+    }
+
     public class Builder {
 
         private Builder() {

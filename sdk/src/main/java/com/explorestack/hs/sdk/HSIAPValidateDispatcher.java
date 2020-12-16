@@ -24,7 +24,7 @@ public class HSIAPValidateDispatcher {
     @NonNull
     private final HSAppInstance app;
     @NonNull
-    private Map<HSComponent, HSIAPValidateHandler> handlers = new HashMap<>();
+    private final Map<HSComponent, HSIAPValidateHandler> handlers = new HashMap<>();
     @Nullable
     private List<Pair<HSInAppPurchase, HSInAppPurchaseValidateListener>> pendingPurchase;
 
@@ -62,6 +62,14 @@ public class HSIAPValidateDispatcher {
 
     public void removeHandler(@NonNull HSComponent component) {
         handlers.remove(component);
+    }
+
+    private void onInAppPurchaseValidateSuccess(@NonNull HSInAppPurchase purchase,
+                                                @Nullable List<HSError> errors) {
+        HSConnectorDelegate connectorDelegate = app.getConnectorDelegate();
+        if (connectorDelegate != null) {
+            connectorDelegate.trackInApp(app.getContext(), purchase);
+        }
     }
 
     private static final class HSIAPValidateTask implements Runnable {
@@ -118,6 +126,7 @@ public class HSIAPValidateDispatcher {
                 if (errors.size() == handlersCount) {
                     listener.onInAppPurchaseValidateFail(errors);
                 } else {
+                    dispatcher.onInAppPurchaseValidateSuccess(purchase, errors);
                     listener.onInAppPurchaseValidateSuccess(purchase, errors);
                 }
             }

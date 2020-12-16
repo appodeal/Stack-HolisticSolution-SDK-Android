@@ -1,18 +1,28 @@
 package com.explorestack.hs.sdk;
 
+import android.content.Context;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 class HSConnectorDelegate implements HSConnectorCallback {
 
     @NonNull
-    private final List<HSConnector> children;
+    private final List<HSConnector> children = new ArrayList<>();
+    @NonNull
+    private final HSAppInstance app;
 
-    public HSConnectorDelegate(@NonNull List<HSConnector> children) {
-        this.children = children;
+    public HSConnectorDelegate(@NonNull HSAppInstance app) {
+        this.app = app;
+    }
+
+    public void setConnectors(@NonNull List<HSConnector> connectors) {
+        children.clear();
+        children.addAll(connectors);
     }
 
     @Override
@@ -44,6 +54,15 @@ class HSConnectorDelegate implements HSConnectorCallback {
         HSLogger.logInfo("setData", extra);
         for (HSConnector connector : children) {
             connector.setExtra(extra);
+        }
+    }
+
+    @Override
+    public void trackInApp(@Nullable Context context,
+                           @Nullable HSInAppPurchase purchase) {
+        HSLogger.logInfo("trackInApp", purchase);
+        for (HSConnector connector : children) {
+            connector.trackInApp(context, purchase);
         }
     }
 }
