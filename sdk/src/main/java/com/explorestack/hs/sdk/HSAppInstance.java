@@ -38,12 +38,12 @@ class HSAppInstance {
     private final HSIAPValidateDispatcher inAppPurchaseValidateDispatcher =
             new HSIAPValidateDispatcher(this);
     @NonNull
+    private final HSConnectorDelegate connectorDelegate = new HSConnectorDelegate(this);
+    @NonNull
     private final List<HSAppInitializeListener> listeners = new CopyOnWriteArrayList<>();
 
     @Nullable
-    private Context targetContext;
-    @Nullable
-    private HSConnectorDelegate connectorDelegate;
+    private Context context;
     @Nullable
     private HSAppInitializer initializer;
     private boolean isInitialized = false;
@@ -75,9 +75,8 @@ class HSAppInstance {
                     inAppPurchaseValidateDispatcher.dispatchPendingPurchase();
                 }
             };
-            connectorDelegate = new HSConnectorDelegate(config.getConnectors());
-            targetContext = context.getApplicationContext();
-            initializer = new HSAppInitializer(targetContext, this, config, connectorDelegate, listenerDelegate);
+            this.context = context.getApplicationContext();
+            initializer = new HSAppInitializer(this.context, this, config, connectorDelegate, listenerDelegate);
             initializer.start();
         }
     }
@@ -125,14 +124,14 @@ class HSAppInstance {
         return inAppPurchaseValidateDispatcher;
     }
 
-    @Nullable
-    public Context getContext() {
-        return targetContext;
+    @NonNull
+    public HSConnectorDelegate getConnectorDelegate() {
+        return connectorDelegate;
     }
 
     @Nullable
-    public HSConnectorDelegate getConnectorDelegate() {
-        return connectorDelegate;
+    public Context getContext() {
+        return context;
     }
 
     private static final class HSAppInitializer extends Thread {
@@ -184,6 +183,7 @@ class HSAppInstance {
                 }
             });
             // Service initialization
+            connectorDelegate.setConnectors(connectors);
             initializeComponents(services, new HSComponentInitializerBuilder<HSService>() {
                 @Override
                 public HSComponentInitializer<HSService> build(@NonNull HSService component,
