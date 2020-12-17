@@ -1,6 +1,7 @@
 package com.explorestack.hs.sdk.connector.appodeal;
 
 import android.content.Context;
+import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -11,6 +12,8 @@ import com.explorestack.hs.sdk.HSComponentCallback;
 import com.explorestack.hs.sdk.HSConnector;
 import com.explorestack.hs.sdk.HSInAppPurchase;
 
+import java.text.DecimalFormat;
+import java.util.Currency;
 import java.util.Map;
 
 public class HSAppodealConnector extends HSConnector {
@@ -61,12 +64,34 @@ public class HSAppodealConnector extends HSConnector {
     @Override
     public void trackInApp(@Nullable Context context, @Nullable HSInAppPurchase purchase) {
         if (context != null && purchase != null) {
-            try {
-                double doublePrice = Double.parseDouble(purchase.getPrice());
-                Appodeal.trackInAppPurchase(context, doublePrice, purchase.getCurrency());
-            } catch (Throwable throwable) {
-                throwable.printStackTrace();
+            String purchasePrice;
+            if ((purchasePrice = purchase.getPrice()) != null) {
+                String currency = purchase.getCurrency();
+                Double price = parsePrice(purchasePrice, currency);
+                if (price != null) {
+                    Appodeal.trackInAppPurchase(context, price, currency);
+                }
             }
         }
+    }
+
+    @Nullable
+    private Double parsePrice(@NonNull String price, @Nullable String currency) {
+        try {
+            if (TextUtils.isEmpty(currency)) {
+                return Double.parseDouble(price);
+            } else {
+                Currency formatCurrency = Currency.getInstance(currency);
+                DecimalFormat format = new DecimalFormat();
+                format.setCurrency(formatCurrency);
+                Number number = format.parse(price.replace(formatCurrency.getSymbol(), ""));
+                if (number != null) {
+                    return number.doubleValue();
+                }
+            }
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
+        return null;
     }
 }
