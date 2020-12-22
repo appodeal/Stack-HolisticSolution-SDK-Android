@@ -45,7 +45,7 @@ dependencies {
     implementation project(path: ':services:facebook')
     implementation project(path: ':services:firebase')
 
-    implementation 'com.appodeal.ads:sdk:2.6.4+'
+    implementation 'com.appodeal.ads:sdk:2.8.1+'
 
     testImplementation 'junit:junit:4.13.1'
     androidTestImplementation 'androidx.test:runner:1.3.0'
