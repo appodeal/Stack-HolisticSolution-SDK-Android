@@ -16,7 +16,7 @@ Please, follow this [guide](https://firebase.google.com/docs/remote-config/use-c
 dependencies {
     // ... other project dependencies
 
-    implementation 'com.explorestack.hs.sdk.service:firebase:1.0.0'
+    implementation 'com.explorestack.hs.sdk.service:firebase:1.0.1'
 }
 ```
 
