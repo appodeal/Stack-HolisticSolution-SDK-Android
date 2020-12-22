@@ -67,9 +67,7 @@ public class HSIAPValidateDispatcher {
     private void onInAppPurchaseValidateSuccess(@NonNull HSInAppPurchase purchase,
                                                 @Nullable List<HSError> errors) {
         HSConnectorDelegate connectorDelegate = app.getConnectorDelegate();
-        if (connectorDelegate != null) {
-            connectorDelegate.trackInApp(app.getContext(), purchase);
-        }
+        connectorDelegate.trackInApp(app.getContext(), purchase);
     }
 
     private static final class HSIAPValidateTask implements Runnable {
