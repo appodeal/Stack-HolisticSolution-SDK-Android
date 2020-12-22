@@ -22,6 +22,13 @@ public class HSAppodealConnectorTest {
         assertEquals(3490000.89, connector.parsePrice("$3,490,000.89", "USD"), DELTA);
         assertEquals(3490000.89, connector.parsePrice("3 490 000,89 €", "EUR"), DELTA);
         assertEquals(3490000.89, connector.parsePrice("3.490.000,89 €", "EUR"), DELTA);
+        assertEquals(12345.67, connector.parsePrice("₹12,345.67", "INR"), DELTA);
+        assertEquals(12345.67, connector.parsePrice("12,345.67 ₹", "INR"), DELTA);
+        assertEquals(12345.67, connector.parsePrice("12345.67₹", "INR"), DELTA);
+        assertEquals(12345.67, connector.parsePrice("12345.67 ₹", "INR"), DELTA);
+
+        assertEquals(61, connector.parsePrice("61", null), DELTA);
+        assertEquals(4490, connector.parsePrice("4490", null), DELTA);
 
         assertEquals(61.22, connector.parsePrice("61.22", "USD"), DELTA);
         assertEquals(4490.52, connector.parsePrice("4 490,52", "RUB"), DELTA);
