@@ -71,9 +71,9 @@ public class HSAppsflyerService extends HSService {
         }
         conversionListener = new ConversionListener(callback, connectorCallback);
         appsFlyer.init(devKey, conversionListener, context);
-        appsFlyer.trackEvent(context, null, null);
+        appsFlyer.logEvent(context, null, null);
         appsFlyer.registerConversionListener(context, conversionListener);
-        appsFlyer.startTracking(context, devKey);
+        appsFlyer.start(context, devKey);
         connectorCallback.setAttributionId("attribution_id", appsFlyer.getAppsFlyerUID(context));
     }
 
@@ -162,7 +162,7 @@ public class HSAppsflyerService extends HSService {
         @Override
         public void onEvent(@NonNull String eventName,
                             @Nullable Map<String, Object> params) {
-            AppsFlyerLib.getInstance().trackEvent(context, eventName, params);
+            AppsFlyerLib.getInstance().logEvent(context, eventName, params);
         }
     }
 
@@ -181,7 +181,7 @@ public class HSAppsflyerService extends HSService {
         public void onValidateInAppPurchase(@NonNull HSInAppPurchase purchase,
                                             @NonNull HSIAPValidateCallback callback) {
             pendingCallback = callback;
-            AppsFlyerLib.getInstance().validateAndTrackInAppPurchase(
+            AppsFlyerLib.getInstance().validateAndLogInAppPurchase(
                     context, purchase.getPublicKey(), purchase.getSignature(),
                     purchase.getPurchaseData(), purchase.getPrice(),
                     purchase.getCurrency(), purchase.getAdditionalParameters());
