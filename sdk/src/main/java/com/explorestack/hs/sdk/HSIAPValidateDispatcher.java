@@ -7,10 +7,10 @@ import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -24,7 +24,7 @@ public class HSIAPValidateDispatcher {
     @NonNull
     private final HSAppInstance app;
     @NonNull
-    private final Map<HSComponent, HSIAPValidateHandler> handlers = new HashMap<>();
+    private final Map<HSComponent, HSIAPValidateHandler> handlers = new ConcurrentHashMap<>();
     @Nullable
     private List<Pair<HSInAppPurchase, HSInAppPurchaseValidateListener>> pendingPurchase;
 
