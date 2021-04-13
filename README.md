@@ -40,7 +40,7 @@ Example app-level build.gradle (excerpt)
 dependencies {
     // ... other project dependencies
 
-    implementation 'com.explorestack.hs:sdk:1.0.1'
+    implementation 'com.explorestack.hs:sdk:1.0.2'
 }
 ```
 
