@@ -6,9 +6,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 class HSEventsDispatcher {
 
@@ -17,7 +17,7 @@ class HSEventsDispatcher {
     @NonNull
     private HSAppInstance app;
     @NonNull
-    private Map<HSComponent, HSEventsHandler> handlers = new HashMap<>();
+    private Map<HSComponent, HSEventsHandler> handlers = new ConcurrentHashMap<>();
     @Nullable
     private List<Pair<String, Map<String, Object>>> pendingEvents;
 
