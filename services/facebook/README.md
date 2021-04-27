@@ -2,11 +2,11 @@
 
 > Note that HS Facebook Service will include only 'facebook-core' dependency independently
 
-## Configure Your Facebook App
+## 1. Configure Your Facebook App
 
-Please follow [Step 1](https://developers.facebook.com/docs/app-events/getting-started-app-events-android#step-1--configure-your-facebook-app) and [Step 2](https://developers.facebook.com/docs/app-events/getting-started-app-events-android#step-2--link-your-facebook-ad-account-with-your-app) from this [guide](https://developers.facebook.com/docs/app-events/getting-started-app-events-android#step-1--configure-your-facebook-app) for configure you Facebook app
+Please follow this [guide](https://developers.facebook.com/docs/app-events/getting-started-app-events-android) to configure you Facebook app
 
-## Add Your Facebook App ID
+## 2. Add Your Facebook App ID
 
 > You can find more info about Facebook integrations in this [guide](https://developers.facebook.com/docs/app-events/getting-started-app-events-android)
 
@@ -30,7 +30,7 @@ Add a `meta-data` element to the application element:
 
 > If you use Facebook Unity SDK and configure it via UI, you probably can skip the last step, since Facebook Unity SDK automatically add required meta-data to AndroidManifest.xml
 
-## Import Service
+## 3. Import Service
 
 ```groovy
 dependencies {
@@ -40,7 +40,7 @@ dependencies {
 }
 ```
 
-## Register Service
+## 4. Register Service
 
 ```java
 public class MainActivity extends AppCompatActivity {

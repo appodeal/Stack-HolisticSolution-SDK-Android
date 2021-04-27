@@ -1,10 +1,12 @@
 # Appodeal SDK Connector for Holistic Solution SDK
 
-## Integrate Appodeal SDK
+## 1. Integrate Appodeal SDK
 
-Please, follow this [guide](https://wiki.appodeal.com/display/DE/Android+SDK.+Integration+Guide) for integrating Appodeal SDK to your app
+Please, follow this [guide](https://wiki.appodeal.com/display/DE/Android+SDK.+Integration+Guide) for integrating Appodeal SDK to your app. 
 
-## Import Connector
+If the Appodeal SDK is already integrated, you can skip this step and go to step 2.
+
+## 2. Import Connector
 
 ```groovy
 dependencies {
@@ -14,7 +16,7 @@ dependencies {
 }
 ```
 
-## Register Connector
+## 3. Register Connector
 
 ```java
 public class YourApplication extends Application {
@@ -36,7 +38,8 @@ public class YourApplication extends Application {
 ```
 
 [appodeal_sdk_initialization]: appodeal_sdk_initialization
-## Appodeal SDK Initialization
+
+## 4. Initialize the Appodeal SDK
 
 First, make sure you've read how to configure and initialize [HSApp](../../README.md#initialize-sdk)
 

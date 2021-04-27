@@ -3,15 +3,15 @@
 >Service will independently add all the necessary dependencies and initialize the AppsFlyer SDK. 
 However, if necessary, you can find information about AppsFlyer SDK integration at this [link](https://support.appsflyer.com/hc/en-us/articles/207032126-Android-SDK-integration-for-developers#integration)
 
-## Integrate AppFlyer
+## 1. Integrate AppFlyer
 
 Please, follow this [guide](https://support.appsflyer.com/hc/en-us/articles/207033486-Getting-started-step-by-step#basic-attribution) for register and create app in AppsFlyer
 
-## Retrieve AppsFlyer SDK dev key
+## 2. Retrieve AppsFlyer SDK dev key
 
 Please, visit this [link](https://support.appsflyer.com/hc/en-us/articles/207032126-Android-SDK-integration-for-developers#integration-31-retrieving-your-dev-key) to get more info about retrieving AppsFlyer dev key
 
-## Import Service
+## 3. Import Service
 
 ```groovy
 dependencies {
@@ -21,7 +21,7 @@ dependencies {
 }
 ```
 
-## Register Service
+## 4. Register Service
 
 ```java
 public class MainActivity extends AppCompatActivity {
