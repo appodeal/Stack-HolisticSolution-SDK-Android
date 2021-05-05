@@ -2,15 +2,15 @@
 
 > Note that HS Firebase Service will include 'firebase-analytics' and 'firebase-config' dependencies independently
 
-## Integrate Firebase
+## 1. Integrate Firebase
 
-Please, follow one of these [steps](https://firebase.google.com/docs/android/setup#console) to connect the Android application to Firebase
+Please, follow this [guide](https://firebase.google.com/docs/android/setup#console) to connect the Android application to Firebase
 
-## Integrate Firebase Remote Config SDK
+## 2. Integrate Firebase Remote Config SDK
 
 Please, follow this [guide](https://firebase.google.com/docs/remote-config/use-config-android) to add Firebase Remote Config SDK to you project
 
-## Import Service
+## 3. Import Service
 
 ```groovy
 dependencies {
@@ -20,7 +20,7 @@ dependencies {
 }
 ```
 
-## Register Service 
+## 4. Register Service 
 
 ```java
 public class MainActivity extends AppCompatActivity {

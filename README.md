@@ -1,19 +1,32 @@
 # About
-
 Stack Holistic Solution SDK for Android simplifies the collection and transfer of the necessary parameters from third-party services to the corresponding Stack SDKs to improve the performance of services such as Mediation and UA
 
-## Table of contents
-
-* [Import SDK](#import-sdk)
+## Integration Guide
+- [Before integration started](#before-integration-started)
+- [Import SDK](#import-sdk)
+	- [Add the Appodeal maven repository](#1-add-the-appodeal-maven-repository)
+	- [Add maven dependencies](#2-add-maven-dependencies)
+	- [Add required connectors and services](#3-add-required-connectors-and-services)
+        * [Connector integration](#31-connector-integration)
+            * [Appodeal Connector](#appodeal-connector)
+        * [Service integration](#32-service-integration)
+            * [AppsFlyer Service](#appsflyer-service)
+            * [Facebook Service](#facebook-service)
+            * [Firebase Service](#firebase-service)
 * [Initialize SDK](#initialize-sdk)
-* [Events](#events)
-* [In-App purchase validation](#in-app-purchase-validation)
-* [Available Services](services/README.md)
-* [Available Connectors](connectors/README.md)
-  
+* [Features](#features)
+  * [Enable debug logic](#enable-debug-logic)
+  * [Enable logs](#enable-logs)
+  * [Events](#events)
+  * [In-App purchase validation](#in-app-purchase-validation)
+
+## Before integration started
+
+HS SDK using [AndroidX](https://developer.android.com/jetpack/androidx), so please make sure you have enabled [Jetifier](https://developer.android.com/jetpack/androidx#using_androidx_libraries_in_your_project)
+
 ## Import SDK
 
-#### Add the Appodeal maven repository
+#### 1. Add the Appodeal maven repository
 
 Apps can import the HS SDK with a Gradle dependency that points to the Appodeal's Maven repository. In order to use that repository, you need to reference it in the app's project-level build.gradle file. Open yours and look for an allprojects section:
 
@@ -30,7 +43,7 @@ allprojects {
 }
 ```
 
-#### Add maven dependencies
+#### 2. Add maven dependencies
 
 Next, open the app-level build.gradle file for your app, and look for the dependencies section:
 
@@ -39,35 +52,41 @@ Example app-level build.gradle (excerpt)
 ```groovy
 dependencies {
     // ... other project dependencies
-
     implementation 'com.explorestack.hs:sdk:1.0.2'
 }
 ```
 
-#### Add required connectors and services
+#### 3. Add required connectors and services
 
-Example app-level build.gradle (excerpt)
+In the HS SDK, we distinguish 2 main entities, these are HSService and HSConnector. HSService is a third-party SDK that does some work as a separate service. HSConnector is an entity that receives events from Services and passes them for processing(in the Appodeal SDK)
 
-```groovy
-dependencies {
-    // ... other project dependencies
+##### 3.1. Connector integration
 
-    //Appodeal SDK connector
-    implementation 'com.explorestack.hs.sdk.connector:appodeal:1.0.1'
-    //AppsFlyer service
-    implementation 'com.explorestack.hs.sdk.service:appsflyer:1.0.2'
-    //Facebook service
-    implementation 'com.explorestack.hs.sdk.service:facebook:1.0.1'
-    //Firebase service
-    implementation 'com.explorestack.hs.sdk.service:firebase:1.0.1'
-}
-```
+- #### [Appodeal Connector](connectors/appodeal/README.md)
+
+Follow the [link](connectors/appodeal/README.md)  and configure the Appodeal Connector, then continue the integration.
+
+##### 3.2. Service integration
+
+- #### [AppsFlyer Service](services/appsflyer/README.md)
+
+Follow the [link](services/appsflyer/README.md) and configure the AppsFlyer Service, then continue the integration.
+
+- #### [Facebook Service](services/facebook/README.md)
+
+Follow the [link](services/facebook/README.md) and configure the Facebook Service, then continue the integration.
+
+- #### [Firebase Service](services/firebase/README.md)
+
+Follow the [link](services/firebase/README.md) and configure the Firebase Service, then continue the integration.
 
 ##  Initialize SDK
 
 Holistic Solution SDK will automatically initialize all registered services (e.g - AppsFlyer, Firebase) and sync all required data to registered connectors (e.g - Appodeal).
 
-To initialize SDK add the line below to onCreate method of your application or activity class:
+To initialize SDK add the line below to onCreate method of your application or activity class.
+
+Initialization example:
 
 ```java
 public class YourApplication extends Application {
@@ -92,7 +111,7 @@ public class YourApplication extends Application {
         HSAppConfig appConfig = new HSAppConfig()
                 .withConnectors(appodealConnector)
                 .withServices(appsflyerService, facebookService, firebaseService);
-        
+
         //Initialize HSApp
         HSApp.initialize(activity, appConfig, new HSAppInitializeListener() {
             @Override
@@ -111,11 +130,10 @@ public class YourApplication extends Application {
 
 [Appodeal initialization example](connectors/appodeal/README.md#appodeal_sdk_initialization)
 
+## Features
+
 #### Enable debug logic
-
 Enable HSApp, services and connectors debug logic if possible
-
-> Please note that not all services and connector have appropriate logic
 
 ```java
 HSAppConfig appConfig = new HSAppConfig()
@@ -123,22 +141,18 @@ HSAppConfig appConfig = new HSAppConfig()
         .setDebugEnabled(true);
 ```
 
-#### Enable logs
+> Please note that not all services and connector have appropriate logic
 
-Enable HSApp, services and connectors logging
+#### Enable logs
+Enable HSApp, services and connectors logging.
 
 ```java
 HSLogger.setEnabled(true)
 ```
+After enabling it, you can view logs by the `HSApp` tag
 
-### AndroidX
-
-HS SDK using [AndroidX](https://developer.android.com/jetpack/androidx), so please make sure you have enabled [Jetifier](https://developer.android.com/jetpack/androidx#using_androidx_libraries_in_your_project)
-
-## Events
-
+#### Events
 Holistic Solution SDK allows you to send events to analytic services such as Firebase, AppsFlyer and Facebook using a single method:
-
 ```java
 // Create map of event parameters if required
 Map<String, Object> params = new HashMap<>();
@@ -153,20 +167,15 @@ HSApp.logEvent("hs_sdk_example_test_event", params);
 
 [Code example](example/src/main/java/com/explorestack/hs/sdk/example/ExampleActivity.java#L67)
 
-#### Disabling Events for specific service or connector
-
+##### Disabling Events for specific service or connector
 If you want to disable Events for specific service or connector, you can call `setEventsEnabled` on appropriate component:
-
 ```java
 HSFacebookService facebookService = new HSFacebookService();
-//Disable service Events 
+//Disable service Events
 facebookService.setEventsEnabled(false);
 ```
-
-## In-App purchase validation
-
+#### In-App purchase validation
 Holistic Solution SDK allows you to unify In-App purchase validation using a single method:
-
 ```java
 // Purchase object is returned by Google API in onPurchasesUpdated() callback
 public void validatePurchase(Purchase purchase) {
@@ -196,6 +205,15 @@ public void validatePurchase(Purchase purchase) {
     });
 }
 ```
+
+| Parameter            | Description                                                                                                        |
+|----------------------|--------------------------------------------------------------------------------------------------------------------|
+| publicKey            | [Public key from Google Developer Console](https://support.google.com/googleplay/android-developer/answer/186113)  |
+| signature            | Transaction signature (returned from Google API when the purchase is completed).                                   |
+| purchaseData         | Product purchased in JSON format (returned from Google API when the purchase is completed).                        |
+| price                | In-app event revenue.                                                                                              |
+| currency             | In-app event currency.                                                                                             |
+| additionalParameters | Additional parameters of the in-app event.                                                                         |
 
 > In-App purchase validation runs by FIFO queue in a single thread
 
