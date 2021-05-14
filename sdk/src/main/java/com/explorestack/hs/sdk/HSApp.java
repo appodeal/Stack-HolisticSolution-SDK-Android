@@ -11,7 +11,7 @@ import java.util.Map;
 public class HSApp {
 
     public static boolean isInitialized() {
-        return HSAppInstance.getInstance().isInitialized();
+        return HSAppInstance.get().isInitialized();
     }
 
     public static void initialize(@NonNull Context context, @NonNull HSAppConfig config) {
@@ -21,15 +21,15 @@ public class HSApp {
     public static void initialize(@NonNull Context context,
                                   @NonNull HSAppConfig config,
                                   @Nullable final HSAppInitializeListener listener) {
-        HSAppInstance.getInstance().initialize(context, config, listener);
+        HSAppInstance.get().initialize(context, config, listener);
     }
 
     public static void addInitializeListener(@NonNull HSAppInitializeListener listener) {
-        HSAppInstance.getInstance().addInitializeListener(listener);
+        HSAppInstance.get().addInitializeListener(listener);
     }
 
     public static void removeInitializeListener(@NonNull HSAppInitializeListener listener) {
-        HSAppInstance.getInstance().removeInitializeListener(listener);
+        HSAppInstance.get().removeInitializeListener(listener);
     }
 
     public static void logEvent(@NonNull String eventName) {
@@ -37,7 +37,11 @@ public class HSApp {
     }
 
     public static void logEvent(@NonNull String eventName, @Nullable Map<String, Object> params) {
-        HSAppInstance.getInstance().logEvent(eventName, params);
+        HSAppInstance.get().logEvent(eventName, params);
+    }
+
+    public static String getVersion() {
+        return HSAppInstance.get().getVersion();
     }
 
     public static void validateInAppPurchase(String publicKey,
@@ -60,7 +64,7 @@ public class HSApp {
 
     public static void validateInAppPurchase(@NonNull HSInAppPurchase purchase,
                                              @Nullable HSInAppPurchaseValidateListener listener) {
-        HSAppInstance.getInstance().validateInAppPurchase(purchase, listener);
+        HSAppInstance.get().validateInAppPurchase(purchase, listener);
     }
 
     private HSApp() {

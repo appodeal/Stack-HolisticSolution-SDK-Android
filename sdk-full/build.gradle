@@ -1,0 +1,34 @@
+apply plugin: 'com.android.library'
+apply from: "${rootDir}/default.gradle"
+
+ext {
+    publishGroupId = "com.explorestack.hs"
+    publishArtifactId = "sdk"
+}
+
+android {
+    defaultConfig {
+        versionCode 0
+        versionName obtainVersion(':sdk') + ".${versionCode}"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation project(':sdk')
+    collectServices().forEach { project ->
+        implementation(project)
+    }
+    collectConnectors().forEach { project ->
+        implementation(project)
+    }
+    collectRegulators().forEach { project ->
+        implementation(project)
+    }
+}

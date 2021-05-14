@@ -6,8 +6,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class HSUtils {
 
@@ -50,9 +48,5 @@ public class HSUtils {
         } else {
             bundle.putString(key, value.toString());
         }
-    }
-
-    static void startTimeout(long timeoutMs, @NonNull TimerTask callback) {
-        new Timer().schedule(callback, timeoutMs);
     }
 }

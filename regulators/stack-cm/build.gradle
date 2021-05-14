@@ -1,0 +1,29 @@
+apply plugin: 'com.android.library'
+apply from: '../regulators.gradle'
+
+android {
+
+    defaultConfig {
+        versionCode 1
+        versionName "1.1.0"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+repositories {
+    maven {
+        url "https://artifactory.appodeal.com/appodeal"
+    }
+}
+
+dependencies {
+    //Consent SDK
+    remoteDependency 'com.explorestack:consent:1.0.4'
+}

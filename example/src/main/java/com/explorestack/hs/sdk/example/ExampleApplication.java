@@ -7,15 +7,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.multidex.MultiDexApplication;
 
+import com.appodeal.ads.Appodeal;
 import com.explorestack.hs.sdk.HSApp;
 import com.explorestack.hs.sdk.HSAppConfig;
 import com.explorestack.hs.sdk.HSAppInitializeListener;
 import com.explorestack.hs.sdk.HSError;
-import com.explorestack.hs.sdk.HSLogger;
-import com.explorestack.hs.sdk.connector.appodeal.HSAppodealConnector;
-import com.explorestack.hs.sdk.service.appsflyer.HSAppsflyerService;
-import com.explorestack.hs.sdk.service.facebook.HSFacebookService;
-import com.explorestack.hs.sdk.service.firebase.HSFirebaseService;
 
 import java.util.List;
 
@@ -38,26 +34,12 @@ public class ExampleApplication extends MultiDexApplication {
         }
         isInitializingHsApp = true;
 
-        //Enable HSApp, services and connectors logs
-        HSLogger.setEnabled(true);
-
-        //Create connector for Appodeal
-        HSAppodealConnector appodealConnector = new HSAppodealConnector();
-
-        //Create service for AppsFlyer
-        HSAppsflyerService appsflyerService = new HSAppsflyerService("ewVfXy4eavTcRaRzrsKWAA");
-
-        //Create service for Firebase
-        HSFirebaseService firebaseService = new HSFirebaseService();
-
-        //Create service for Facebook
-        HSFacebookService facebookService = new HSFacebookService();
-
         //Create HSApp configuration
         HSAppConfig appConfig = new HSAppConfig()
                 .setDebugEnabled(true)
-                .withConnectors(appodealConnector)
-                .withServices(appsflyerService, facebookService, firebaseService);
+                .setLoggingEnabled(true)
+                .setAppKey("c05de97de46bf68a9ede523a580bef97e42692848736ecad")
+                .setAdType(Appodeal.INTERSTITIAL);
 
         //Initialize HSApp
         HSApp.initialize(context, appConfig, new HSAppInitializeListener() {

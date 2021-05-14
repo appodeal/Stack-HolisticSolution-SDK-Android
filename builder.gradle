@@ -1,0 +1,91 @@
+import java.util.function.BiConsumer
+import java.util.regex.Matcher
+import java.util.regex.Pattern
+
+def generateHSRegulatorAsset(variant) {
+    generateAsset(variant, "HSRegulator", "hs_regulators")
+}
+
+def generateHSConnectorAsset(variant) {
+    generateAsset(variant, "HSConnector", "hs_connectors")
+}
+
+def generateHSServiceAsset(variant) {
+    generateAsset(variant, "HSService", "hs_services")
+}
+
+private generateAsset(variant, HSComponentParent, HSComponentPath) {
+    String configClassPath = null
+
+    println '----------------------------------------'
+    variant.sourceSets.forEach { source ->
+        source.javaDirectories.forEach { file ->
+            if (!file.isFile()) {
+                fileTree(file)
+                        .findAll { it.isFile() && (it.name.endsWith(".java") || it.name.endsWith(".kt")) }
+                        .forEach { f ->
+                            def javaFile = new File(f.path)
+                            if (!javaFile.canRead()) {
+                                throw new GradleException("Java/Kotlin file can't be readed")
+                            }
+                            if ((f.name.endsWith(".java") || f.name.endsWith(".kt")) && !javaFile.isDirectory()) {
+                                def javaFileContent = javaFile.text
+
+                                if (javaFileContent.contains("extends $HSComponentParent")
+                                        || javaFileContent.contains(": $HSComponentParent")) {
+                                    println("--- Found component: " + javaFile.path)
+                                    String packageRegExp = "(?:\\s*)(?:package)(?:\\s*)([\\w-_.]*)?(?:\\s*)"
+                                    String classRegExp = "(?:.*)(?:class)(?:\\s)([\\w-_.]*)(?:\\s)(?:.*?)(?:extends|:(.*))(?:.*)([{|(])"
+
+                                    Matcher packageMatcher = Pattern.compile(packageRegExp).matcher(javaFileContent)
+                                    Matcher classMatcher = Pattern.compile(classRegExp).matcher(javaFileContent)
+
+                                    if (packageMatcher.find() && classMatcher.find()) {
+                                        def classPackage = packageMatcher.group(1)
+                                        def className = classMatcher.group(1)
+
+                                        println("classPackage: " + classPackage + ", className: " + className)
+                                        configClassPath = classPackage + "." + className
+                                    }
+                                }
+                            }
+                        }
+            }
+        }
+    }
+    if (configClassPath == null) {
+        throw GradleException("configClassPath not found")
+    }
+    Map<String, String> values = new HashMap<>()
+    values.put("name", '\"' + project.name + '\"')
+    values.put("version", project.android.defaultConfig.versionName)
+    values.put("classpath", "\"" + configClassPath + "\"")
+    StringBuilder jsonOutput = new StringBuilder()
+    values.forEach(new BiConsumer<String, String>() {
+        @Override
+        void accept(String k, String v) {
+            if (jsonOutput.length() > 0) {
+                jsonOutput.append(",")
+            }
+            jsonOutput.append("\"$k\":$v")
+        }
+    })
+    jsonOutput.insert(0, "{")
+    jsonOutput.append("}")
+    println("variant ${variant.name} data: " + jsonOutput.toString())
+
+    variant.getMergeAssetsProvider().get().outputs.each { output ->
+        output.files.each { outDir ->
+            println "outDir: " + outDir.path
+            def outFile = file("${outDir}/${HSComponentPath}/${project.name}.hscomponent")
+            outFile.parentFile.mkdirs()
+            outFile.text = jsonOutput.toString()
+        }
+    }
+}
+
+ext {
+    generateHSRegulatorAsset = this.&generateHSRegulatorAsset
+    generateHSConnectorAsset = this.&generateHSConnectorAsset
+    generateHSServiceAsset = this.&generateHSServiceAsset
+}

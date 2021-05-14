@@ -1,7 +1,23 @@
-apply from: "${rootDir}/configurations.gradle"
+apply from: "${rootDir}/default.gradle"
+apply from: "${rootDir}/builder.gradle"
 
 ext {
     publishGroupId = 'com.explorestack.hs.sdk.connector'
 }
 
-apply from: "${rootDir}/publish.gradle"
+dependencies {
+    implementation project(path: ':sdk')
+}
+
+gradle.projectsEvaluated {
+    packageDebugAssets.doLast {
+        android.libraryVariants.forEach { variant ->
+            generateHSConnectorAsset(variant)
+        }
+    }
+    packageReleaseAssets.doLast {
+        android.libraryVariants.forEach { variant ->
+            generateHSConnectorAsset(variant)
+        }
+    }
+}

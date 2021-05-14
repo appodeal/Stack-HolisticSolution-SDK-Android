@@ -1,28 +1,40 @@
-static List<File> collectServices() {
-    return collectModules(new File('services'), null, null)
+List<Project> collectServices() {
+    return collectProjects(':services', null, null)
 }
 
-static List<File> collectConnectors() {
-    return collectModules(new File('connectors'), null, null)
+List<Project> collectConnectors() {
+    return collectProjects(':connectors', null, null)
 }
 
-static List<File> collectModules(File rootFolder,
-                                 List<String> including,
-                                 List<String> excluding) {
-    return rootFolder
-            .listFiles()
-            .findAll { file -> file.isDirectory() && !file.name.startsWith('_') }
-            .findAll { folder ->
-                if (including == null || including.contains(folder.name)) {
-                    if (excluding == null || !excluding.contains(folder.name)) {
-                        return true
-                    }
-                }
-                return false
+List<Project> collectRegulators() {
+    return collectProjects(':regulators', null, null)
+}
+
+private List<Project> collectProjects(String rootProject,
+                                      List<String> including,
+                                      List<String> excluding) {
+    List<Project> resultProjects = new ArrayList<>()
+    project(rootProject).childProjects.values().forEach { project ->
+        if (including == null || including.contains(project.name)) {
+            if (excluding == null || !excluding.contains(project.name)) {
+                resultProjects.add(project)
             }
+        }
+    }
+    return resultProjects
+}
+
+String obtainVersion(String projectName) {
+    return obtainVersion(project(projectName))
+}
+
+static String obtainVersion(Project project) {
+    return project.android.defaultConfig.versionName
 }
 
 ext {
     collectServices = this.&collectServices
     collectConnectors = this.&collectConnectors
+    collectRegulators = this.&collectRegulators
+    obtainVersion = this.&obtainVersion
 }

@@ -67,7 +67,7 @@ public class HSIAPValidateDispatcher {
     private void onInAppPurchaseValidateSuccess(@NonNull HSInAppPurchase purchase,
                                                 @Nullable List<HSError> errors) {
         HSConnectorDelegate connectorDelegate = app.getConnectorDelegate();
-        connectorDelegate.trackInApp(app.getContext(), purchase);
+        connectorDelegate.trackInApp(app.getAppContext(), purchase);
     }
 
     private static final class HSIAPValidateTask implements Runnable {
@@ -134,7 +134,7 @@ public class HSIAPValidateDispatcher {
                                    @NonNull final HSIAPValidateHandler handler,
                                    @NonNull final HSIAPValidateCallback callback) {
             final AtomicBoolean isFinished = new AtomicBoolean(false);
-            HSUtils.startTimeout(TimeUnit.MINUTES.toMillis(1), new TimerTask() {
+            HSCoreUtils.startTimeout(TimeUnit.MINUTES.toMillis(1), new TimerTask() {
                 @Override
                 public void run() {
                     if (!isFinished.get()) {

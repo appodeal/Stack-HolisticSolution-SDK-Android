@@ -1,17 +1,18 @@
 package com.explorestack.hs.sdk;
 
-import android.content.Context;
+import android.app.Activity;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-public abstract class HSConnector extends HSComponent implements HSConnectorCallback {
+public abstract class HSConnector<T> extends HSComponent {
 
     public HSConnector(@NonNull String name, @Nullable String version) {
         super(name, version);
     }
 
-    public abstract void initialize(@NonNull Context context,
+    public abstract void initialize(@Nullable Activity activity,
                                     @NonNull HSAppParams params,
-                                    @NonNull HSComponentCallback callback);
+                                    @NonNull HSComponentCallback callback,
+                                    @Nullable HSRegulator<T> regulator);
 }

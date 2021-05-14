@@ -38,16 +38,33 @@ public class HSComponent {
     }
 
     @Nullable
+    public HSIAPValidateHandler createIAPValidateHandler(@NonNull Context context) {
+        return null;
+    }
+
+    @Nullable
     public HSEventsHandler createEventsHandler(@NonNull Context context) {
         return null;
     }
 
     @Nullable
-    public HSIAPValidateHandler createIAPValidateHandler(@NonNull Context context) {
+    public HSConnectorCallback createConnectorCallback(@NonNull Context context) {
         return null;
     }
 
     protected HSError buildError(@NonNull String message) {
         return HSError.forComponent(this, message);
+    }
+
+    @Nullable
+    public static <T extends HSComponent> T create(HSComponentAssetParams assetParams) {
+        try {
+            return (T) Class.forName(assetParams.getClasspath())
+                    .getConstructor()
+                    .newInstance();
+        } catch (Throwable ignored) {
+            // ignore
+        }
+        return null;
     }
 }

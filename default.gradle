@@ -1,0 +1,18 @@
+apply plugin: 'kotlin-android'
+apply from: "${rootDir}/configurations.gradle"
+apply from: "${rootDir}/publish.gradle"
+
+android {
+    compileSdkVersion 30
+    buildToolsVersion "29.0.3"
+
+    defaultConfig {
+        minSdkVersion 14
+        targetSdkVersion 30
+    }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation 'androidx.annotation:annotation:1.0.0'
+}
