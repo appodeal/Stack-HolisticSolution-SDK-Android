@@ -10,8 +10,8 @@ import androidx.annotation.Nullable;
 import org.json.JSONObject;
 
 import java.io.InputStream;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.ArrayList;
+import java.util.List;
 
 class HSComponentAssetManager {
 
@@ -23,36 +23,36 @@ class HSComponentAssetManager {
     private static final String KEY_NAME = "name";
     private static final String KEY_VERSION = "version";
 
-    private static final Map<String, HSComponentAssetParams> HSRegulatorsAssetParamsMap = new ConcurrentHashMap<>();
-    private static final Map<String, HSComponentAssetParams> HSConnectorsAssetParamsMap = new ConcurrentHashMap<>();
-    private static final Map<String, HSComponentAssetParams> HSServicesAssetParamsMap = new ConcurrentHashMap<>();
+    private static final List<HSComponentAssetParams> HSRegulatorsAssetParams = new ArrayList<>();
+    private static final List<HSComponentAssetParams> HSConnectorsAssetParams = new ArrayList<>();
+    private static final List<HSComponentAssetParams> HSServicesAssetParams = new ArrayList<>();
 
-    static Map<String, HSComponentAssetParams> getRegulators() {
-        return HSRegulatorsAssetParamsMap;
+    static List<HSComponentAssetParams> getRegulators() {
+        return HSRegulatorsAssetParams;
     }
 
-    static Map<String, HSComponentAssetParams> getConnectors() {
-        return HSConnectorsAssetParamsMap;
+    static List<HSComponentAssetParams> getConnectors() {
+        return HSConnectorsAssetParams;
     }
 
-    static Map<String, HSComponentAssetParams> getServices() {
-        return HSServicesAssetParamsMap;
+    static List<HSComponentAssetParams> getServices() {
+        return HSServicesAssetParams;
     }
 
     static void findHSComponents(@NonNull Context context) {
-        if (HSRegulatorsAssetParamsMap.isEmpty()) {
-            findHSComponents(context, HSRegulatorsAssetParamsMap, HS_REGULATORS_ASSET_PATH);
+        if (HSRegulatorsAssetParams.isEmpty()) {
+            findHSComponents(context, HSRegulatorsAssetParams, HS_REGULATORS_ASSET_PATH);
         }
-        if (HSConnectorsAssetParamsMap.isEmpty()) {
-            findHSComponents(context, HSConnectorsAssetParamsMap, HS_CONNECTORS_ASSET_PATH);
+        if (HSConnectorsAssetParams.isEmpty()) {
+            findHSComponents(context, HSConnectorsAssetParams, HS_CONNECTORS_ASSET_PATH);
         }
-        if (HSServicesAssetParamsMap.isEmpty()) {
-            findHSComponents(context, HSServicesAssetParamsMap, HS_SERVICES_ASSET_PATH);
+        if (HSServicesAssetParams.isEmpty()) {
+            findHSComponents(context, HSServicesAssetParams, HS_SERVICES_ASSET_PATH);
         }
     }
 
     private static void findHSComponents(@NonNull Context context,
-                                         @NonNull Map<String, HSComponentAssetParams> assetParamsMap,
+                                         @NonNull List<HSComponentAssetParams> assetParamsMap,
                                          @NonNull String assetPath) {
         try {
             AssetManager assetManager = context.getAssets();
@@ -69,11 +69,11 @@ class HSComponentAssetManager {
     }
 
     private static void findHSComponent(@NonNull AssetManager assetManager,
-                                        @NonNull Map<String, HSComponentAssetParams> assetParamsMap,
+                                        @NonNull List<HSComponentAssetParams> assetParamsMap,
                                         @NonNull String filePath) {
         HSComponentAssetParams hsComponentAssetParams = createHSComponentParams(assetManager, filePath);
         if (hsComponentAssetParams != null) {
-            assetParamsMap.put(hsComponentAssetParams.getName(), hsComponentAssetParams);
+            assetParamsMap.add(hsComponentAssetParams);
         }
     }
 

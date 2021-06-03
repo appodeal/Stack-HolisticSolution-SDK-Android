@@ -200,13 +200,13 @@ class HSAppInstance {
         public void run() {
             Context targetContext = contextProvider.getApplicationContext();
             HSComponentAssetManager.findHSComponents(targetContext);
-            if (isMapNullOrEmpty(getRegulators())) {
+            if (isListNullOrEmpty(getRegulators())) {
                 addError(HSError.NoRegulator);
             }
-            if (isMapNullOrEmpty(getServices())) {
+            if (isListNullOrEmpty(getServices())) {
                 addError(HSError.NoServices);
             }
-            if (isMapNullOrEmpty(getConnectors())) {
+            if (isListNullOrEmpty(getConnectors())) {
                 addError(HSError.NoConnectors);
             }
             final HSAppParamsImpl appParams = new HSAppParamsImpl(appConfig);
@@ -235,14 +235,14 @@ class HSAppInstance {
         }
 
         private <T extends HSComponent> void initializeComponents(
-                @NonNull Map<String, HSComponentAssetParams> assetParamsMap,
+                @NonNull List<HSComponentAssetParams> hsComponentAssetParams,
                 @NonNull HSComponentInitializerBuilder<T> initializerBuilder
         ) {
-            if (assetParamsMap.isEmpty()) {
+            if (hsComponentAssetParams.isEmpty()) {
                 return;
             }
             List<T> components = new ArrayList<>();
-            for (HSComponentAssetParams assetParams : assetParamsMap.values()) {
+            for (HSComponentAssetParams assetParams : hsComponentAssetParams) {
                 if (initializerBuilder.isEnable(assetParams)) {
                     T component = HSComponent.create(assetParams);
                     if (component != null) {
@@ -289,8 +289,8 @@ class HSAppInstance {
             return errors != null ? Collections.unmodifiableList(errors) : null;
         }
 
-        private <K, V> boolean isMapNullOrEmpty(@Nullable Map<K, V> collection) {
-            return collection == null || collection.isEmpty();
+        private <T> boolean isListNullOrEmpty(@Nullable List<T> list) {
+            return list == null || list.isEmpty();
         }
 
         private abstract static class HSComponentInitializerBuilder<T extends HSComponent> {
