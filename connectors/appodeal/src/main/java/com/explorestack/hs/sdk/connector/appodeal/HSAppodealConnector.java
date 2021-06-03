@@ -6,7 +6,6 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.VisibleForTesting;
 
 import com.appodeal.ads.Appodeal;
 import com.appodeal.ads.utils.Log;
@@ -18,10 +17,8 @@ import com.explorestack.hs.sdk.HSConnectorCallback;
 import com.explorestack.hs.sdk.HSInAppPurchase;
 import com.explorestack.hs.sdk.HSLogger;
 import com.explorestack.hs.sdk.HSRegulator;
+import com.explorestack.hs.sdk.HSUtils;
 
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.util.Currency;
 import java.util.Map;
 
 public class HSAppodealConnector extends HSConnector<Consent> {
@@ -105,64 +102,12 @@ public class HSAppodealConnector extends HSConnector<Consent> {
                 String purchasePrice;
                 if ((purchasePrice = purchase.getPrice()) != null) {
                     String currency = purchase.getCurrency();
-                    Double price = null;
-                    // TODO: 31.05.2021
-//                    Double price = parsePrice(purchasePrice, currency);
+                    Double price = HSUtils.parsePrice(purchasePrice, currency);
                     if (price != null) {
                         Appodeal.trackInAppPurchase(context, price, currency);
                     }
                 }
             }
         }
-    }
-
-    @VisibleForTesting
-    @Nullable
-    Double parsePrice(@NonNull String price, @Nullable String currency) {
-        try {
-            if (TextUtils.isEmpty(currency)) {
-                return Double.parseDouble(price);
-            } else {
-                DecimalFormat format = new DecimalFormat();
-                Currency formatCurrency = Currency.getInstance(currency);
-                format.setCurrency(formatCurrency);
-                int idxDot = price.indexOf('.');
-                int idxCom = price.indexOf(',');
-                boolean containsDot = idxDot > -1;
-                boolean containsComma = idxCom > -1;
-                DecimalFormatSymbols formatSymbols = new DecimalFormatSymbols();
-                if (containsDot && !containsComma) {
-                    setUpFormatSymbols(formatSymbols, '.', ',');
-                } else if (!containsDot && containsComma) {
-                    setUpFormatSymbols(formatSymbols, ',', '.');
-                } else if (containsDot && containsComma) {
-                    if (idxDot > idxCom) {
-                        setUpFormatSymbols(formatSymbols, '.', ',');
-                    } else {
-                        setUpFormatSymbols(formatSymbols, ',', '.');
-                    }
-                }
-                format.setDecimalFormatSymbols(formatSymbols);
-                Number number = format.parse(price.replace(formatCurrency.getSymbol(), ""));
-                if (number != null) {
-                    return number.doubleValue();
-                }
-            }
-        } catch (Throwable throwable) {
-            throwable.printStackTrace();
-        }
-        try {
-            return Double.parseDouble(price);
-        } catch (Throwable throwable) {
-            throwable.printStackTrace();
-        }
-        return null;
-    }
-
-    private void setUpFormatSymbols(DecimalFormatSymbols formatSymbols,
-                                    char decimalSeparator,
-                                    char groupingSeparator) {
-        formatSymbols.setDecimalSeparator(decimalSeparator);
-        formatSymbols.setGroupingSeparator(groupingSeparator);
     }
 }

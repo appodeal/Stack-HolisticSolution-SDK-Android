@@ -1,10 +1,14 @@
 package com.explorestack.hs.sdk;
 
 import android.os.Bundle;
+import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.Currency;
 import java.util.Map;
 
 public class HSUtils {
@@ -48,5 +52,54 @@ public class HSUtils {
         } else {
             bundle.putString(key, value.toString());
         }
+    }
+
+    @Nullable
+    public static Double parsePrice(@NonNull String price, @Nullable String currency) {
+        try {
+            if (TextUtils.isEmpty(currency)) {
+                return Double.parseDouble(price);
+            } else {
+                DecimalFormat format = new DecimalFormat();
+                Currency formatCurrency = Currency.getInstance(currency);
+                format.setCurrency(formatCurrency);
+                int idxDot = price.indexOf('.');
+                int idxCom = price.indexOf(',');
+                boolean containsDot = idxDot > -1;
+                boolean containsComma = idxCom > -1;
+                DecimalFormatSymbols formatSymbols = new DecimalFormatSymbols();
+                if (containsDot && !containsComma) {
+                    setUpFormatSymbols(formatSymbols, '.', ',');
+                } else if (!containsDot && containsComma) {
+                    setUpFormatSymbols(formatSymbols, ',', '.');
+                } else if (containsDot && containsComma) {
+                    if (idxDot > idxCom) {
+                        setUpFormatSymbols(formatSymbols, '.', ',');
+                    } else {
+                        setUpFormatSymbols(formatSymbols, ',', '.');
+                    }
+                }
+                format.setDecimalFormatSymbols(formatSymbols);
+                Number number = format.parse(price.replace(formatCurrency.getSymbol(), ""));
+                if (number != null) {
+                    return number.doubleValue();
+                }
+            }
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
+        try {
+            return Double.parseDouble(price);
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
+        return null;
+    }
+
+    private static void setUpFormatSymbols(DecimalFormatSymbols formatSymbols,
+                                           char decimalSeparator,
+                                           char groupingSeparator) {
+        formatSymbols.setDecimalSeparator(decimalSeparator);
+        formatSymbols.setGroupingSeparator(groupingSeparator);
     }
 }
