@@ -26,6 +26,7 @@ import com.explorestack.hs.sdk.HSLogger;
 import com.explorestack.hs.sdk.HSService;
 import com.explorestack.hs.sdk.HSUtils;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class HSAdjustService extends HSService {
@@ -110,7 +111,8 @@ public class HSAdjustService extends HSService {
             HSLogger.logInfo("Adjust", "onAttributionChanged");
             if (attribution != null) {
                 // TODO: 15.05.2021 set conversion data
-                connectorCallback.setConversionData(attribution);
+                Map<String, Object> data = AdjustUtils.convertAttributionDataToMap(attribution);
+                connectorCallback.setConversionData(data);
             }
             callback.onFinished();
             if (externalAttributionListener != null) {
@@ -168,8 +170,8 @@ public class HSAdjustService extends HSService {
             if (params != null && params.size() > 0) {
                 for (Map.Entry<String, Object> param : params.entrySet()) {
                     // TODO: 15.05.2021 additional params
-                    adjustEvent.addCallbackParameter(param.getKey(), param.getValue());
-                    adjustEvent.addPartnerParameter(param.getKey(), param.getValue());
+                    adjustEvent.addCallbackParameter(param.getKey(), String.valueOf(param.getValue()));
+                    adjustEvent.addPartnerParameter(param.getKey(), String.valueOf(param.getValue()));
                 }
             }
             Adjust.trackEvent(adjustEvent);
@@ -206,5 +208,23 @@ public class HSAdjustService extends HSService {
             }
         }
     }
-}
+
+    private static final class AdjustUtils{
+
+        private static Map<String, Object> convertAttributionDataToMap(AdjustAttribution attribution) {
+            Map<String, Object> data = new HashMap<>();
+            data.put("trackerToken", attribution.trackerToken);
+            data.put("trackerName", attribution.trackerName);
+            data.put("network", attribution.network);
+            data.put("campaign", attribution.campaign);
+            data.put("adgroup", attribution.adgroup);
+            data.put("creative", attribution.creative);
+            data.put("clickLabel", attribution.clickLabel);
+            data.put("adid", attribution.adid);
+            data.put("costType", attribution.costType);
+            data.put("costAmount", attribution.costAmount);
+            data.put("costCurrency", attribution.costCurrency);
+            return data;
+        }
+    }
 }
