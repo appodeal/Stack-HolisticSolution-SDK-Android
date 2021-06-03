@@ -13,6 +13,7 @@ Stack Holistic Solution SDK for Android simplifies the collection and transfer o
             * [AppsFlyer Service](#appsflyer-service)
             * [Facebook Service](#facebook-service)
             * [Firebase Service](#firebase-service)
+            * [Adjust Service](#adjust-service)
 * [Initialize SDK](#initialize-sdk)
 * [Features](#features)
   * [Enable debug logic](#enable-debug-logic)
@@ -80,6 +81,10 @@ Follow the [link](services/facebook/README.md) and configure the Facebook Servic
 
 Follow the [link](services/firebase/README.md) and configure the Firebase Service, then continue the integration.
 
+- #### [Adjust Service](services/adjust/README.md)
+
+Follow the [link](services/adjust/README.md) and configure the Adjust Service, then continue the integration.
+
 ##  Initialize SDK
 
 Holistic Solution SDK will automatically initialize all registered services (e.g - AppsFlyer, Firebase) and sync all required data to registered connectors (e.g - Appodeal).
@@ -106,6 +111,10 @@ public class YourApplication extends Application {
 
         //Create service for Firebase
         HSFirebaseService firebaseService = new HSFirebaseService();
+
+        //Create service for Firebase
+        HSAdjustService adjustService = new HSAdjustService();
+
 
         //Create HSApp configuration
         HSAppConfig appConfig = new HSAppConfig()
