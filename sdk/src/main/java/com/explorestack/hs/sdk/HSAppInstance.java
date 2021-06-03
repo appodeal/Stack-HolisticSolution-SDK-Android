@@ -50,6 +50,8 @@ class HSAppInstance {
     @NonNull
     private final HSConnectorDelegate connectorDelegate = new HSConnectorDelegate(this);
     @NonNull
+    private final HSLifecycleDelegate lifecycleDelegate = new HSLifecycleDelegate();
+    @NonNull
     private final List<HSAppInitializeListener> listeners = new CopyOnWriteArrayList<>();
     @NonNull
     private final String trackId = UUID.randomUUID().toString();
@@ -90,7 +92,7 @@ class HSAppInstance {
                 }
             };
             appContext = context.getApplicationContext();
-            ((Application) appContext).registerActivityLifecycleCallbacks(new HSActivityLifecycleCallbacks());
+            ((Application) appContext).registerActivityLifecycleCallbacks(lifecycleDelegate);
             initializer = new HSAppInitializer(new HSSimpleContextProvider(context), this, config, listenerDelegate);
             initializer.start();
         }
@@ -152,6 +154,11 @@ class HSAppInstance {
     @NonNull
     HSConnectorDelegate getConnectorDelegate() {
         return connectorDelegate;
+    }
+
+    @NonNull
+    HSLifecycleDelegate getLifecycleDelegate() {
+        return lifecycleDelegate;
     }
 
     @Nullable
@@ -405,7 +412,9 @@ class HSAppInstance {
                 app.getEventsDispatcher().addHandler(
                         component, component.createEventsHandler(targetContext));
             }
-            app.connectorDelegate.addCallback(
+            app.getLifecycleDelegate().addCallback(
+                    component, component.getLifecycleCallback(targetContext));
+            app.getConnectorDelegate().addCallback(
                     component, component.createConnectorCallback(targetContext));
             app.getInAppPurchaseValidateDispatcher().addHandler(
                     component, component.createIAPValidateHandler(targetContext));

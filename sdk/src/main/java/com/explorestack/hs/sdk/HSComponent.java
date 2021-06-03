@@ -1,5 +1,6 @@
 package com.explorestack.hs.sdk;
 
+import android.app.Application;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
@@ -49,6 +50,11 @@ public class HSComponent {
 
     @Nullable
     public HSConnectorCallback createConnectorCallback(@NonNull Context context) {
+        return null;
+    }
+
+    @Nullable
+    public Application.ActivityLifecycleCallbacks getLifecycleCallback(@NonNull Context context) {
         return null;
     }
 
