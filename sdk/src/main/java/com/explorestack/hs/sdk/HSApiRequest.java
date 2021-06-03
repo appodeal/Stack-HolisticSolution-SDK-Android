@@ -9,11 +9,14 @@ import androidx.annotation.Nullable;
 
 import com.explorestack.hs.sdk.HSAdvertisingInfo.AdvertisingProfile;
 
+import org.apache.http.conn.ConnectTimeoutException;
 import org.json.JSONObject;
 
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.net.URLConnection;
+import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -41,6 +44,7 @@ class HSApiRequest<RequestDataType, ResponseDataType> extends HSNetworkRequest<R
         if (responseCode == HttpURLConnection.HTTP_OK) {
             return null;
         }
+        HSLogger.logError("Request", "Request error (" + responseCode + ")");
         return getErrorFromCode(connection, responseCode);
     }
 
@@ -48,28 +52,19 @@ class HSApiRequest<RequestDataType, ResponseDataType> extends HSNetworkRequest<R
     protected HSError obtainError(URLConnection connection,
                                   @Nullable InputStream errorStream,
                                   int responseCode) {
-//        Logger.log("Request error (" + responseCode + "), headers:", connection.getHeaderFields());
-//        final String errorReason = connection.getHeaderField("ad-exchange-error-reason");
-//        final String errorMessage = connection.getHeaderField("ad-exchange-error-message");
-//        return !TextUtils.isEmpty(errorMessage) && !TextUtils.isEmpty(errorReason)
-//                ? HSError.requestError(String.format("%s - %s", errorReason, errorMessage))
-//                : !TextUtils.isEmpty(errorMessage) ? HSError.requestError(errorMessage)
-//                : !TextUtils.isEmpty(errorReason) ? HSError.requestError(errorReason)
-//                : getErrorFromCode(connection, responseCode);
-        return null;
+        HSLogger.logError("Request", "Request error (" + responseCode + ")");
+        return getErrorFromCode(connection, responseCode);
     }
 
     @Override
     protected HSError obtainError(URLConnection connection, @Nullable Throwable t) {
-//        Logger.log("obtainError: " + t + "(" + connection + ")");
-//        //TODO: not checked
-//        if (t instanceof UnknownHostException) {
-//            return HSError.Connection;
-//        } else if (t instanceof SocketTimeoutException || t instanceof ConnectTimeoutException) {
-//            return HSError.TimeoutError;
-//        }
-//        return HSError.Internal;
-        return null;
+        HSLogger.logError("Request", "obtainError: " + t + "(" + connection + ")");
+        if (t instanceof UnknownHostException) {
+            return HSError.forRequest("HS can't connect to server");
+        } else if (t instanceof SocketTimeoutException || t instanceof ConnectTimeoutException) {
+            return HSError.forRequest("HS request timeout");
+        }
+        return HSError.Internal;
     }
 
     @Override
@@ -85,15 +80,14 @@ class HSApiRequest<RequestDataType, ResponseDataType> extends HSNetworkRequest<R
     }
 
     private HSError getErrorFromCode(URLConnection connection, int responseCode) {
-//        if (responseCode >= 200 && responseCode < 300) {
-//            return HSError.NoContent;
-//        } else if (responseCode >= 400 && responseCode < 500) {
-//            return HSError.requestError(String.valueOf(responseCode));
-//        } else if (responseCode >= 500 && responseCode < 600) {
-//            return HSError.Server;
-//        }
-//        return HSError.Internal;
-        return null;
+        if (responseCode >= 200 && responseCode < 300) {
+            return HSError.forRequest(String.valueOf(responseCode));
+        } else if (responseCode >= 400 && responseCode < 500) {
+            return HSError.forRequest(String.valueOf(responseCode));
+        } else if (responseCode >= 500 && responseCode < 600) {
+            return HSError.forRequest("Server error, please contact support");
+        }
+        return HSError.Internal;
     }
 
     public static class Builder<RequestDataType, ResponseDataType> {
