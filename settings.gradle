@@ -25,5 +25,3 @@ static void collectModules(settings,
                 }
             }
 }
-
-include ':services:adjust'

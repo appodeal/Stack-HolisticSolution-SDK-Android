@@ -13,8 +13,14 @@ import com.adjust.sdk.Adjust;
 import com.adjust.sdk.AdjustAttribution;
 import com.adjust.sdk.AdjustConfig;
 import com.adjust.sdk.AdjustEvent;
+import com.adjust.sdk.AdjustPlayStoreSubscription;
 import com.adjust.sdk.LogLevel;
 import com.adjust.sdk.OnAttributionChangedListener;
+import com.adjust.sdk.purchase.ADJPConfig;
+import com.adjust.sdk.purchase.ADJPLogLevel;
+import com.adjust.sdk.purchase.ADJPVerificationInfo;
+import com.adjust.sdk.purchase.AdjustPurchase;
+import com.adjust.sdk.purchase.OnADJPVerificationFinished;
 import com.explorestack.hs.sdk.HSAppParams;
 import com.explorestack.hs.sdk.HSComponentCallback;
 import com.explorestack.hs.sdk.HSConnectorCallback;
@@ -37,6 +43,8 @@ public class HSAdjustService extends HSService {
     private final String environment;
     @Nullable
     private OnAttributionChangedListener externalAttributionListener;
+    @Nullable
+    private OnADJPVerificationFinished externalPurchaseValidatorListener;
 
     public HSAdjustService(@NonNull String appToken) {
         this(appToken, AdjustConfig.ENVIRONMENT_PRODUCTION);
@@ -52,6 +60,10 @@ public class HSAdjustService extends HSService {
         this.externalAttributionListener = listener;
     }
 
+    public void setAdjustInAppPurchaseValidatorListener(@Nullable OnADJPVerificationFinished listener) {
+        this.externalPurchaseValidatorListener = listener;
+    }
+
     @Override
     public void start(@NonNull Context context,
                       @NonNull HSAppParams params,
@@ -65,17 +77,25 @@ public class HSAdjustService extends HSService {
             callback.onFail(buildError("Environment not provided"));
             return;
         }
-        AdjustConfig config = new AdjustConfig(context, appToken, environment);
-        config.setLogLevel(HSLogger.isEnabled() ? LogLevel.VERBOSE : LogLevel.INFO);
+        AdjustConfig adjustCOnfig = new AdjustConfig(context, appToken, environment);
+        ADJPConfig adjustPurchaseConfig = new ADJPConfig(appToken, environment);
+
+        adjustPurchaseConfig.setLogLevel(HSLogger.isEnabled() ? ADJPLogLevel.VERBOSE : ADJPLogLevel.INFO);
+        adjustCOnfig.setLogLevel(HSLogger.isEnabled() ? LogLevel.VERBOSE : LogLevel.INFO);
+
         OnAttributionChangedListener attributionListener =
                 new AttributionChangedListener(callback,
                                                connectorCallback,
                                                externalAttributionListener);
-        config.setOnAttributionChangedListener(attributionListener);
+        adjustCOnfig.setOnAttributionChangedListener(attributionListener);
         if (context instanceof Application) {
             ((Application) context).registerActivityLifecycleCallbacks(new AdjustLifecycleCallbacks());
         }
-        Adjust.onCreate(config);
+
+        AdjustPurchase.init(adjustPurchaseConfig);
+        Adjust.onCreate(adjustCOnfig);
+        connectorCallback.setAttributionId("attribution_id", Adjust.getAdid());
+        callback.onFinished();
     }
 
     @Nullable
@@ -178,7 +198,7 @@ public class HSAdjustService extends HSService {
         }
     }
 
-    private final class HSIAPValidateDelegate implements HSIAPValidateHandler {
+    private final class HSIAPValidateDelegate implements HSIAPValidateHandler, OnADJPVerificationFinished {
         @NonNull
         private final Context context;
         @Nullable
@@ -205,6 +225,31 @@ public class HSAdjustService extends HSService {
                         Adjust.trackEvent(adjustEvent);
                     }
                 }
+                validateSubscribtion(purchase);
+            }
+        }
+
+        private void validateSubscribtion(HSInAppPurchase purchase) {
+            if (purchase.getPrice() != null) {
+                AdjustPlayStoreSubscription subscription = new AdjustPlayStoreSubscription(
+                        Long.parseLong(purchase.getPrice()),
+                        purchase.getCurrency(),
+                        purchase.getSku(),
+                        purchase.getOrderId(),
+                        purchase.getSignature(),
+                        purchase.getPurchaseToken());
+                subscription.setPurchaseTime(purchase.getPurchaseTimestamp());
+            }
+        }
+
+        @Override
+        public void onVerificationFinished(ADJPVerificationInfo adjpVerificationInfo) {
+            if (pendingCallback != null) {
+                pendingCallback.onSuccess();
+                pendingCallback = null;
+            }
+            if (externalPurchaseValidatorListener != null) {
+                externalPurchaseValidatorListener.onVerificationFinished(adjpVerificationInfo);
             }
         }
     }
