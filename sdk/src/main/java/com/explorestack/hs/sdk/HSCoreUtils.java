@@ -35,6 +35,7 @@ class HSCoreUtils {
 
     private static final String TAG = "HSCoreUtils";
     private static final String UUID_ID = "uuid";
+    // TODO: 04.06.2021
     private static final String SHARED_PREFERENCES_NAME = "ad_core_preferences";
 
     @NonNull
@@ -86,7 +87,7 @@ class HSCoreUtils {
 
     static String getAdvertisingUUID(@NonNull Context context) {
         SharedPreferences sharedPref = context.getSharedPreferences(SHARED_PREFERENCES_NAME,
-                Context.MODE_PRIVATE);
+                                                                    Context.MODE_PRIVATE);
         if (sharedPref.contains(UUID_ID)) {
             return sharedPref.getString(UUID_ID, null);
         } else {
