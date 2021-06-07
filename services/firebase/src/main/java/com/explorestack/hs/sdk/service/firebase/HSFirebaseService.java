@@ -37,7 +37,7 @@ public class HSFirebaseService extends HSService {
     private FirebaseAnalytics firebaseAnalytics;
 
     public HSFirebaseService() {
-        super("Firebase", null);
+        super("firebase", null);
     }
 
     // TODO: 07.06.2021 set external analytics
