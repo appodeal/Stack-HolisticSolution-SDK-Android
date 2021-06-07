@@ -38,13 +38,17 @@ import java.util.Map;
 public class HSAdjustService extends HSService {
 
     @NonNull
-    private final String appToken;
+    private String appToken;
     @NonNull
-    private final String environment;
+    private String environment;
     @Nullable
     private OnAttributionChangedListener externalAttributionListener;
     @Nullable
     private OnADJPVerificationFinished externalPurchaseValidatorListener;
+
+    public HSAdjustService() {
+        super("Adjust", Adjust.getSdkVersion());
+    }
 
     public HSAdjustService(@NonNull String appToken) {
         this(appToken, AdjustConfig.ENVIRONMENT_PRODUCTION);
@@ -254,7 +258,7 @@ public class HSAdjustService extends HSService {
         }
     }
 
-    private static final class AdjustUtils{
+    private static final class AdjustUtils {
 
         private static Map<String, Object> convertAttributionDataToMap(AdjustAttribution attribution) {
             Map<String, Object> data = new HashMap<>();

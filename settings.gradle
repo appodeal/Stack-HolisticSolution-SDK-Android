@@ -5,7 +5,7 @@ include ':services'
 include ':connectors'
 include ':regulators'
 
-collectModules(settings, file('services'), null, null)
+collectModules(settings, file('services'), null, ["firebase"])
 collectModules(settings, file('connectors'), null, null)
 collectModules(settings, file('regulators'), null, null)
 
