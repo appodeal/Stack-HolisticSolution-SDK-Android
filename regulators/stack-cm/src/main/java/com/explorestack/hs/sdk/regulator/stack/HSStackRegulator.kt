@@ -6,8 +6,8 @@ import com.explorestack.consent.*
 import com.explorestack.consent.Consent.ShouldShow.TRUE
 import com.explorestack.consent.ConsentForm.Builder
 import com.explorestack.consent.exception.ConsentManagerException
-import com.explorestack.hs.sdk.HSAppParams
 import com.explorestack.hs.sdk.HSComponentCallback
+import com.explorestack.hs.sdk.HSComponentParams
 import com.explorestack.hs.sdk.HSRegulator
 
 
@@ -18,7 +18,7 @@ class HSStackRegulator : HSRegulator<Consent>("Stack Consent Manager", null) {
 
     override fun start(
         context: Context,
-        params: HSAppParams,
+        params: HSComponentParams,
         callback: HSComponentCallback,
     ) {
         if (TextUtils.isEmpty(params.appKey)) {

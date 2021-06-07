@@ -10,8 +10,8 @@ import com.appsflyer.AFLogger;
 import com.appsflyer.AppsFlyerConversionListener;
 import com.appsflyer.AppsFlyerInAppPurchaseValidatorListener;
 import com.appsflyer.AppsFlyerLib;
-import com.explorestack.hs.sdk.HSAppParams;
 import com.explorestack.hs.sdk.HSComponentCallback;
+import com.explorestack.hs.sdk.HSComponentParams;
 import com.explorestack.hs.sdk.HSConnectorCallback;
 import com.explorestack.hs.sdk.HSEventsHandler;
 import com.explorestack.hs.sdk.HSIAPValidateCallback;
@@ -19,6 +19,9 @@ import com.explorestack.hs.sdk.HSIAPValidateHandler;
 import com.explorestack.hs.sdk.HSInAppPurchase;
 import com.explorestack.hs.sdk.HSLogger;
 import com.explorestack.hs.sdk.HSService;
+import com.explorestack.hs.sdk.HSUtils;
+
+import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.List;
@@ -26,27 +29,16 @@ import java.util.Map;
 
 public class HSAppsflyerService extends HSService {
 
-    @NonNull
-    private final String devKey;
-    @Nullable
-    private final List<String> conversionKeys;
-    @Nullable
-    private AppsFlyerConversionListener conversionListener;
     @Nullable
     private AppsFlyerConversionListener externalConversionListener;
     @Nullable
     private AppsFlyerInAppPurchaseValidatorListener externalPurchaseValidatorListener;
 
-    public HSAppsflyerService(@NonNull String devKey) {
-        this(devKey, null);
-    }
-
-    public HSAppsflyerService(@NonNull String devKey, @Nullable List<String> conversionKeys) {
+    public HSAppsflyerService() {
         super("Appsflyer", AppsFlyerLib.getInstance().getSdkVersion());
-        this.devKey = devKey;
-        this.conversionKeys = conversionKeys;
     }
 
+    // TODO: 07.06.2021 external listener
     public void setAppsFlyerConversionListener(@Nullable AppsFlyerConversionListener listener) {
         this.externalConversionListener = listener;
     }
@@ -57,19 +49,20 @@ public class HSAppsflyerService extends HSService {
 
     @Override
     public void start(@NonNull Context context,
-                      @NonNull HSAppParams params,
+                      @NonNull HSComponentParams params,
                       @NonNull HSComponentCallback callback,
                       @NonNull HSConnectorCallback connectorCallback) {
+        JSONObject extra = params.getExtra();
+        String devKey = extra.optString("dev_key");
         if (TextUtils.isEmpty(devKey)) {
             callback.onFail(buildError("DevKey not provided"));
             return;
         }
+        List<String> conversionKeys = HSUtils.jsonArrayToList(extra.optJSONArray("conversion_keys"));
         final AppsFlyerLib appsFlyer = AppsFlyerLib.getInstance();
         appsFlyer.setDebugLog(params.isDebugEnabled());
-        if (HSLogger.isEnabled()) {
-            appsFlyer.setLogLevel(AFLogger.LogLevel.VERBOSE);
-        }
-        conversionListener = new ConversionListener(callback, connectorCallback);
+        appsFlyer.setLogLevel(params.isLoggingEnabled() ? AFLogger.LogLevel.VERBOSE : AFLogger.LogLevel.NONE);
+        AppsFlyerConversionListener conversionListener = new ConversionListener(conversionKeys, callback, connectorCallback);
         appsFlyer.init(devKey, conversionListener, context);
         appsFlyer.logEvent(context, null, null);
         appsFlyer.registerConversionListener(context, conversionListener);
@@ -92,12 +85,16 @@ public class HSAppsflyerService extends HSService {
     private final class ConversionListener implements AppsFlyerConversionListener {
 
         @NonNull
+        private final List<String> conversionKeys;
+        @NonNull
         private final HSComponentCallback callback;
         @NonNull
         private final HSConnectorCallback connectorCallback;
 
-        public ConversionListener(@NonNull HSComponentCallback callback,
+        public ConversionListener(@NonNull List<String> conversionKeys,
+                                  @NonNull HSComponentCallback callback,
                                   @NonNull HSConnectorCallback connectorCallback) {
+            this.conversionKeys = conversionKeys;
             this.callback = callback;
             this.connectorCallback = connectorCallback;
         }
@@ -106,7 +103,7 @@ public class HSAppsflyerService extends HSService {
         public void onConversionDataSuccess(Map<String, Object> map) {
             HSLogger.logInfo("Appsflyer", "onConversionDataSuccess");
             if (map != null && !map.isEmpty()) {
-                if (conversionKeys == null || conversionKeys.isEmpty()) {
+                if (conversionKeys.isEmpty()) {
                     connectorCallback.setConversionData(map);
                 } else {
                     Map<String, Object> resultMap = new HashMap<>();

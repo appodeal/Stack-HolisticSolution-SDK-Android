@@ -6,9 +6,13 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import org.json.JSONArray;
+
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.ArrayList;
 import java.util.Currency;
+import java.util.List;
 import java.util.Map;
 
 public class HSUtils {
@@ -101,5 +105,16 @@ public class HSUtils {
                                            char groupingSeparator) {
         formatSymbols.setDecimalSeparator(decimalSeparator);
         formatSymbols.setGroupingSeparator(groupingSeparator);
+    }
+
+    @NonNull
+    public static <T> List<T> jsonArrayToList(@Nullable JSONArray jsonArray) {
+        List<T> list = new ArrayList<>();
+        if (jsonArray != null) {
+            for (int i = 0; i < jsonArray.length(); i++) {
+                list.add((T) jsonArray.opt(i));
+            }
+        }
+        return list;
     }
 }

@@ -10,12 +10,11 @@ import androidx.annotation.Nullable;
 import com.appodeal.ads.Appodeal;
 import com.appodeal.ads.utils.Log;
 import com.explorestack.consent.Consent;
-import com.explorestack.hs.sdk.HSAppParams;
 import com.explorestack.hs.sdk.HSComponentCallback;
+import com.explorestack.hs.sdk.HSComponentParams;
 import com.explorestack.hs.sdk.HSConnector;
 import com.explorestack.hs.sdk.HSConnectorCallback;
 import com.explorestack.hs.sdk.HSInAppPurchase;
-import com.explorestack.hs.sdk.HSLogger;
 import com.explorestack.hs.sdk.HSRegulator;
 import com.explorestack.hs.sdk.HSUtils;
 
@@ -29,7 +28,7 @@ public class HSAppodealConnector extends HSConnector<Consent> {
 
     @Override
     public void initialize(@Nullable Activity activity,
-                           @NonNull HSAppParams params,
+                           @NonNull HSComponentParams params,
                            @NonNull HSComponentCallback callback,
                            @Nullable HSRegulator<Consent> regulator) {
         if (activity == null) {
@@ -46,7 +45,7 @@ public class HSAppodealConnector extends HSConnector<Consent> {
             callback.onFail(buildError("AdType not provided"));
             return;
         }
-        Appodeal.setLogLevel(HSLogger.isEnabled() ? Log.LogLevel.verbose : Log.LogLevel.none);
+        Appodeal.setLogLevel(params.isLoggingEnabled() ? Log.LogLevel.verbose : Log.LogLevel.none);
         assert appKey != null;
         if (regulator == null || regulator.getConsent() == null) {
             Appodeal.initialize(activity, appKey, adType);

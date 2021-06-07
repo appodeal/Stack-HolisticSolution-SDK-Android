@@ -9,8 +9,8 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.explorestack.hs.sdk.HSAppParams;
 import com.explorestack.hs.sdk.HSComponentCallback;
+import com.explorestack.hs.sdk.HSComponentParams;
 import com.explorestack.hs.sdk.HSConnectorCallback;
 import com.explorestack.hs.sdk.HSEventsHandler;
 import com.explorestack.hs.sdk.HSService;
@@ -32,13 +32,14 @@ public class HSFacebookService extends HSService {
         super("Facebook", FacebookSdk.getSdkVersion());
     }
 
+    // TODO: 07.06.2021 external event logger
     public void setEventsLogger(@Nullable AppEventsLogger eventsLogger) {
         this.eventsLogger = eventsLogger;
     }
 
     @Override
     public void start(@NonNull Context context,
-                      @NonNull HSAppParams params,
+                      @NonNull HSComponentParams params,
                       @NonNull HSComponentCallback callback,
                       @NonNull HSConnectorCallback connectorCallback) {
         try {
