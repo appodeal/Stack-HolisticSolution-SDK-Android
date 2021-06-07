@@ -1,10 +1,11 @@
 package com.explorestack.hs.sdk;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-public interface HSAppParams {
+import org.json.JSONObject;
 
-    long getComponentInitializeTimeoutMs();
+public interface HSComponentParams {
 
     boolean isDebugEnabled();
 
@@ -15,4 +16,7 @@ public interface HSAppParams {
 
     @Nullable
     Integer getAdType();
+
+    @NonNull
+    JSONObject getExtra();
 }

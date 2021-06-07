@@ -72,7 +72,7 @@ class HSAdvertisingInfo {
             if (advertisingIdInfoObject != null) {
                 id = (String) invokeMethodByName(advertisingIdInfoObject, "getId");
                 limitAdTrackingEnabled = (boolean) invokeMethodByName(advertisingIdInfoObject,
-                        "isLimitAdTrackingEnabled");
+                                                                      "isLimitAdTrackingEnabled");
             }
         }
 

@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.TimeZone;
 
 class HSApiRequest<RequestDataType, ResponseDataType> extends HSNetworkRequest<RequestDataType, ResponseDataType, HSError> {
@@ -262,9 +261,8 @@ class HSApiRequest<RequestDataType, ResponseDataType> extends HSNetworkRequest<R
         public void bind(@NonNull Context context,
                          @NonNull HSAppParams appParams,
                          @NonNull JSONObject target) throws Exception {
-            Map<String, HSComponentAssetParams> services = HSComponentAssetManager.getServices();
             JSONObject servicesJson = new JSONObject();
-            for (HSComponentAssetParams assetParams : services.values()) {
+            for (HSComponentAssetParams assetParams : HSComponentAssetManager.getServices()) {
                 JSONObject componentJson = new JSONObject();
                 componentJson.put("ver", assetParams.getVersion());
                 componentJson.put("sdk", assetParams.getVersion());

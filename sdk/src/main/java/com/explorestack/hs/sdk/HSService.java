@@ -12,7 +12,7 @@ public abstract class HSService extends HSComponent {
     }
 
     public abstract void start(@NonNull Context context,
-                               @NonNull HSAppParams params,
+                               @NonNull HSComponentParams params,
                                @NonNull HSComponentCallback callback,
                                @NonNull HSConnectorCallback connectorCallback);
 }

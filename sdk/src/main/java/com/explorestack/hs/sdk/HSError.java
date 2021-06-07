@@ -20,9 +20,9 @@ public class HSError {
         return new HSError(1000, String.format("[%s]: %s", component.getName(), message));
     }
 
-    private int code;
+    private final int code;
     @NonNull
-    private String message;
+    private final String message;
 
     private HSError(int code, @NonNull String message) {
         this.code = code;
