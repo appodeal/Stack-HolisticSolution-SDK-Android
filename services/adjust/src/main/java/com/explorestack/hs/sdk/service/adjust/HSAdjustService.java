@@ -47,7 +47,7 @@ public class HSAdjustService extends HSService {
     private OnADJPVerificationFinished externalPurchaseValidatorListener;
 
     public HSAdjustService() {
-        super("Adjust", Adjust.getSdkVersion());
+        super("adjust", Adjust.getSdkVersion());
     }
 
     public HSAdjustService(@NonNull String appToken) {
@@ -55,7 +55,7 @@ public class HSAdjustService extends HSService {
     }
 
     public HSAdjustService(@NonNull String appToken, @NonNull String environment) {
-        super("Adjust", Adjust.getSdkVersion());
+        super("adjust", Adjust.getSdkVersion());
         this.appToken = appToken;
         this.environment = environment;
     }
