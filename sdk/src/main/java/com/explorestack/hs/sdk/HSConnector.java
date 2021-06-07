@@ -12,7 +12,7 @@ public abstract class HSConnector<T> extends HSComponent {
     }
 
     public abstract void initialize(@Nullable Activity activity,
-                                    @NonNull HSAppParams params,
+                                    @NonNull HSComponentParams params,
                                     @NonNull HSComponentCallback callback,
                                     @Nullable HSRegulator<T> regulator);
 }

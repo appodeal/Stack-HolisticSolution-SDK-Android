@@ -10,6 +10,7 @@ class HSAppParamsImpl implements HSAppParams {
     private static final long DEF_COMPONENT_INITIALIZE_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
 
     private final boolean isDebugEnabled;
+    private final boolean isLoggingEnabled;
     private final long componentInitializeTimeout;
     @Nullable
     private final String appKey;
@@ -18,6 +19,7 @@ class HSAppParamsImpl implements HSAppParams {
 
     HSAppParamsImpl(@NonNull HSAppConfig appConfig) {
         isDebugEnabled = appConfig.isDebugEnabled();
+        isLoggingEnabled = appConfig.isLoggingEnabled();
         componentInitializeTimeout = appConfig.getComponentInitializeTimeout();
         appKey = appConfig.getAppKey();
         adType = appConfig.getAdType();
@@ -26,6 +28,11 @@ class HSAppParamsImpl implements HSAppParams {
     @Override
     public boolean isDebugEnabled() {
         return isDebugEnabled;
+    }
+
+    @Override
+    public boolean isLoggingEnabled() {
+        return isLoggingEnabled;
     }
 
     @Nullable

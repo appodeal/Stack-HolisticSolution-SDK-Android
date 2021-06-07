@@ -12,7 +12,7 @@ public abstract class HSRegulator<T> extends HSComponent {
     }
 
     public abstract void start(@NonNull Context context,
-                               @NonNull HSAppParams params,
+                               @NonNull HSComponentParams params,
                                @NonNull HSComponentCallback callback);
 
     @Nullable

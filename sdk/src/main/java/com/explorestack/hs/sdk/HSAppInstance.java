@@ -42,6 +42,9 @@ class HSAppInstance {
         return instance;
     }
 
+    // TODO: 03.06.2021 remove
+    HSRegulator regulator;
+
     @NonNull
     private final HSEventsDispatcher eventsDispatcher = new HSEventsDispatcher(this);
     @NonNull
@@ -207,26 +210,74 @@ class HSAppInstance {
         public void run() {
             Context targetContext = contextProvider.getApplicationContext();
             HSComponentAssetManager.findHSComponents(targetContext);
-            if (isListNullOrEmpty(getRegulators())) {
+            final List<HSComponentAssetParams> regulators = getRegulators();
+            final List<HSComponentAssetParams> services = getServices();
+            final List<HSComponentAssetParams> connectors = getConnectors();
+
+            if (isListNullOrEmpty(regulators)) {
                 addError(HSError.NoRegulator);
             }
-            if (isListNullOrEmpty(getServices())) {
+            if (isListNullOrEmpty(services)) {
                 addError(HSError.NoServices);
             }
-            if (isListNullOrEmpty(getConnectors())) {
+            if (isListNullOrEmpty(connectors)) {
                 addError(HSError.NoConnectors);
             }
             final HSAppParamsImpl appParams = new HSAppParamsImpl(appConfig);
             // Regulator initialization
-            initializeComponents(getRegulators(), regulatorInitBuilder(appParams));
-            HSNetworkRequest.Callback<JSONObject, HSError> callback = new HSNetworkRequest.Callback<JSONObject, HSError>() {
+            initializeComponents(regulators,
+                    new HSComponentInitializerBuilder<HSRegulator>(app, contextProvider, appParams) {
+
+                        @Override
+                        boolean isEnable(@NonNull HSComponentAssetParams assetParams) {
+                            return true;
+                        }
+
+                        @Override
+                        void process(@NonNull HSRegulator component,
+                                     @NonNull HSComponentParams params,
+                                     @NonNull HSComponentCallback callback) {
+                            component.start(contextProvider.getContext(), params, callback);
+                        }
+                    });
+
+            HSNetworkRequest.Callback<JSONObject, HSError> callback
+                    = new HSNetworkRequest.Callback<JSONObject, HSError>() {
                 @Override
                 public void onSuccess(@Nullable JSONObject result) {
                     // Connectors initialization
-                    // TODO: 31.05.2021 regulator
-                    initializeComponents(getConnectors(), connectorInitBuilder(appParams, null));
+                    // TODO: 07.06.2021 regulator
+                    initializeComponents(connectors,
+                            new HSComponentInitializerBuilder<HSConnector>(app, contextProvider, appParams) {
+
+                                @Override
+                                boolean isEnable(@NonNull HSComponentAssetParams assetParams) {
+                                    return true;
+                                }
+
+                                @Override
+                                void process(@NonNull HSConnector component,
+                                             @NonNull HSComponentParams params,
+                                             @NonNull HSComponentCallback callback) {
+                                    component.initialize(contextProvider.getActivity(),
+                                            params,
+                                            callback,
+                                            null);
+                                }
+                            });
                     // Services initialization
-                    initializeComponents(getServices(), serviceInitBuilder(appParams));
+                    initializeComponents(services,
+                            new HSComponentInitializerBuilder<HSService>(app, contextProvider, appParams) {
+                                @Override
+                                void process(@NonNull HSService component,
+                                             @NonNull HSComponentParams params,
+                                             @NonNull HSComponentCallback callback) {
+                                    component.start(contextProvider.getContext(),
+                                            params,
+                                            callback,
+                                            app.getConnectorDelegate());
+                                }
+                            });
                     listener.onAppInitialized(getErrors());
                 }
 
@@ -301,49 +352,57 @@ class HSAppInstance {
         }
 
         private abstract static class HSComponentInitializerBuilder<T extends HSComponent> {
-            abstract HSComponentInitializer<T> build(@NonNull T component,
-                                                     @NonNull HSComponentCallback callback);
 
-            boolean isEnable(HSComponentAssetParams assetParams) {
-                return true;
+            @NonNull
+            protected final HSAppInstance app;
+            @NonNull
+            protected final HSContextProvider contextProvider;
+            @NonNull
+            protected final HSAppParams appParams;
+            @NonNull
+            private final JSONObject serverParams;
+
+            HSComponentInitializerBuilder(@NonNull HSAppInstance app,
+                                          @NonNull HSContextProvider contextProvider,
+                                          @NonNull HSAppParams appParams) {
+                this(app, contextProvider, appParams, new JSONObject());
             }
-        }
 
-        private HSComponentInitializerBuilder<HSRegulator> regulatorInitBuilder(
-                @NonNull final HSAppParamsImpl appParams
-        ) {
-            return new HSComponentInitializerBuilder<HSRegulator>() {
-                @Override
-                public HSComponentInitializer<HSRegulator> build(@NonNull HSRegulator component,
-                                                                 @NonNull HSComponentCallback callback) {
-                    return new HSRegulatorInitializer(contextProvider, app, component, appParams, callback);
-                }
-            };
-        }
+            HSComponentInitializerBuilder(@NonNull HSAppInstance app,
+                                          @NonNull HSContextProvider contextProvider,
+                                          @NonNull HSAppParams appParams,
+                                          @NonNull JSONObject serverParams) {
+                this.app = app;
+                this.contextProvider = contextProvider;
+                this.appParams = appParams;
+                this.serverParams = serverParams;
+            }
 
-        private HSComponentInitializerBuilder<HSService> serviceInitBuilder(
-                @NonNull final HSAppParamsImpl appParams
-        ) {
-            return new HSComponentInitializerBuilder<HSService>() {
-                @Override
-                public HSComponentInitializer<HSService> build(@NonNull HSService component,
-                                                               @NonNull HSComponentCallback callback) {
-                    return new HSServiceInitializer(contextProvider, app, component, appParams, callback);
-                }
-            };
-        }
+            HSComponentInitializer<T> build(@NonNull T component,
+                                            @NonNull HSComponentCallback callback) {
+                return new HSComponentInitializer<T>(app, contextProvider, component, appParams, callback) {
 
-        private HSComponentInitializerBuilder<HSConnector> connectorInitBuilder(
-                @NonNull final HSAppParamsImpl appParams,
-                @Nullable final HSRegulator regulator
-        ) {
-            return new HSComponentInitializerBuilder<HSConnector>() {
-                @Override
-                public HSComponentInitializer<HSConnector> build(@NonNull HSConnector component,
-                                                                 @NonNull HSComponentCallback callback) {
-                    return new HSConnectorInitializer(contextProvider, app, component, appParams, callback, regulator);
-                }
-            };
+                    @Override
+                    void doProcess(@NonNull HSComponentCallback callback) {
+                        process(component, getParams(component), callback);
+                    }
+                };
+            }
+
+            boolean isEnable(@NonNull HSComponentAssetParams assetParams) {
+                return serverParams.has(assetParams.getName());
+            }
+
+            abstract void process(@NonNull T component,
+                                  @NonNull HSComponentParams params,
+                                  @NonNull HSComponentCallback callback);
+
+            @NonNull
+            private HSComponentParams getParams(@NonNull T component) {
+                JSONObject extra = serverParams.optJSONObject(component.getName());
+                extra = extra == null ? new JSONObject() : extra;
+                return new HSComponentParamsImpl(appParams, extra);
+            }
         }
     }
 
@@ -422,59 +481,5 @@ class HSAppInstance {
         }
 
         abstract void doProcess(@NonNull HSComponentCallback callback);
-    }
-
-    private static final class HSRegulatorInitializer extends HSComponentInitializer<HSRegulator> implements Runnable {
-
-        public HSRegulatorInitializer(@NonNull HSContextProvider contextProvider,
-                                      @NonNull HSAppInstance app,
-                                      @NonNull HSRegulator component,
-                                      @NonNull HSAppParams appParams,
-                                      @NonNull HSComponentCallback callback) {
-            super(app, contextProvider, component, appParams, callback);
-        }
-
-        @Override
-        void doProcess(@NonNull HSComponentCallback callback) {
-            component.start(contextProvider.getContext(), appParams, callback);
-        }
-    }
-
-    private static final class HSConnectorInitializer extends HSComponentInitializer<HSConnector> implements Runnable {
-
-        @Nullable
-        private final HSRegulator regulator;
-
-        public HSConnectorInitializer(@NonNull HSContextProvider contextProvider,
-                                      @NonNull HSAppInstance app,
-                                      @NonNull HSConnector component,
-                                      @NonNull HSAppParams appParams,
-                                      @NonNull HSComponentCallback callback,
-                                      @Nullable HSRegulator regulator) {
-            super(app, contextProvider, component, appParams, callback);
-            // TODO: 31.05.2021 hide regulators
-            this.regulator = regulator;
-        }
-
-        @Override
-        void doProcess(@NonNull HSComponentCallback callback) {
-            component.initialize(contextProvider.getActivity(), appParams, callback, regulator);
-        }
-    }
-
-    private static final class HSServiceInitializer extends HSComponentInitializer<HSService> implements Runnable {
-
-        public HSServiceInitializer(@NonNull HSContextProvider contextProvider,
-                                    @NonNull HSAppInstance app,
-                                    @NonNull HSService component,
-                                    @NonNull HSAppParams appParams,
-                                    @NonNull HSComponentCallback callback) {
-            super(app, contextProvider, component, appParams, callback);
-        }
-
-        @Override
-        void doProcess(@NonNull HSComponentCallback callback) {
-            component.start(contextProvider.getApplicationContext(), appParams, callback, app.connectorDelegate);
-        }
     }
 }
