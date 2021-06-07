@@ -248,7 +248,7 @@ class HSAppInstance {
                     // Connectors initialization
                     // TODO: 07.06.2021 regulator
                     initializeComponents(connectors,
-                            new HSComponentInitializerBuilder<HSConnector>(app, contextProvider, appParams) {
+                            new HSComponentInitializerBuilder<HSConnector>(app, contextProvider, appParams, result) {
 
                                 @Override
                                 boolean isEnable(@NonNull HSComponentAssetParams assetParams) {
@@ -260,22 +260,22 @@ class HSAppInstance {
                                              @NonNull HSComponentParams params,
                                              @NonNull HSComponentCallback callback) {
                                     component.initialize(contextProvider.getActivity(),
-                                            params,
-                                            callback,
-                                            null);
+                                                         params,
+                                                         callback,
+                                                         null);
                                 }
                             });
                     // Services initialization
                     initializeComponents(services,
-                            new HSComponentInitializerBuilder<HSService>(app, contextProvider, appParams) {
+                            new HSComponentInitializerBuilder<HSService>(app, contextProvider, appParams, result) {
                                 @Override
                                 void process(@NonNull HSService component,
                                              @NonNull HSComponentParams params,
                                              @NonNull HSComponentCallback callback) {
                                     component.start(contextProvider.getContext(),
-                                            params,
-                                            callback,
-                                            app.getConnectorDelegate());
+                                                    params,
+                                                    callback,
+                                                    app.getConnectorDelegate());
                                 }
                             });
                     listener.onAppInitialized(getErrors());
@@ -365,17 +365,17 @@ class HSAppInstance {
             HSComponentInitializerBuilder(@NonNull HSAppInstance app,
                                           @NonNull HSContextProvider contextProvider,
                                           @NonNull HSAppParams appParams) {
-                this(app, contextProvider, appParams, new JSONObject());
+                this(app, contextProvider, appParams, null);
             }
 
             HSComponentInitializerBuilder(@NonNull HSAppInstance app,
                                           @NonNull HSContextProvider contextProvider,
                                           @NonNull HSAppParams appParams,
-                                          @NonNull JSONObject serverParams) {
+                                          @Nullable JSONObject serverParams) {
                 this.app = app;
                 this.contextProvider = contextProvider;
                 this.appParams = appParams;
-                this.serverParams = serverParams;
+                this.serverParams = serverParams == null ? new JSONObject() : serverParams;
             }
 
             HSComponentInitializer<T> build(@NonNull T component,
