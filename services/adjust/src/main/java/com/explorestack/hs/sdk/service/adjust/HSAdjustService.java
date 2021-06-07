@@ -5,6 +5,7 @@ import android.app.Application;
 import android.content.Context;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -23,6 +24,7 @@ import com.adjust.sdk.purchase.AdjustPurchase;
 import com.adjust.sdk.purchase.OnADJPVerificationFinished;
 import com.explorestack.hs.sdk.HSAppParams;
 import com.explorestack.hs.sdk.HSComponentCallback;
+import com.explorestack.hs.sdk.HSComponentParams;
 import com.explorestack.hs.sdk.HSConnectorCallback;
 import com.explorestack.hs.sdk.HSEventsHandler;
 import com.explorestack.hs.sdk.HSIAPValidateCallback;
@@ -32,15 +34,14 @@ import com.explorestack.hs.sdk.HSLogger;
 import com.explorestack.hs.sdk.HSService;
 import com.explorestack.hs.sdk.HSUtils;
 
+import org.jetbrains.annotations.NotNull;
+import org.json.JSONObject;
+
 import java.util.HashMap;
 import java.util.Map;
 
 public class HSAdjustService extends HSService {
 
-    @NonNull
-    private String appToken;
-    @NonNull
-    private String environment;
     @Nullable
     private OnAttributionChangedListener externalAttributionListener;
     @Nullable
@@ -48,16 +49,6 @@ public class HSAdjustService extends HSService {
 
     public HSAdjustService() {
         super("adjust", Adjust.getSdkVersion());
-    }
-
-    public HSAdjustService(@NonNull String appToken) {
-        this(appToken, AdjustConfig.ENVIRONMENT_PRODUCTION);
-    }
-
-    public HSAdjustService(@NonNull String appToken, @NonNull String environment) {
-        super("adjust", Adjust.getSdkVersion());
-        this.appToken = appToken;
-        this.environment = environment;
     }
 
     public void setAttributionChangedListener(@Nullable OnAttributionChangedListener listener) {
@@ -70,9 +61,12 @@ public class HSAdjustService extends HSService {
 
     @Override
     public void start(@NonNull Context context,
-                      @NonNull HSAppParams params,
+                      @NonNull HSComponentParams params,
                       @NonNull HSComponentCallback callback,
                       @NonNull HSConnectorCallback connectorCallback) {
+        JSONObject extra = params.getExtra();
+        String appToken = extra.optString("app_token");
+        String environment = extra.optString("environment");
         if (TextUtils.isEmpty(appToken)) {
             callback.onFail(buildError("AppToken not provided"));
             return;
@@ -81,25 +75,37 @@ public class HSAdjustService extends HSService {
             callback.onFail(buildError("Environment not provided"));
             return;
         }
-        AdjustConfig adjustCOnfig = new AdjustConfig(context, appToken, environment);
+        AdjustConfig adjustConfig = new AdjustConfig(context, appToken, environment);
         ADJPConfig adjustPurchaseConfig = new ADJPConfig(appToken, environment);
-
+        HSLogger.setEnabled(true);
         adjustPurchaseConfig.setLogLevel(HSLogger.isEnabled() ? ADJPLogLevel.VERBOSE : ADJPLogLevel.INFO);
-        adjustCOnfig.setLogLevel(HSLogger.isEnabled() ? LogLevel.VERBOSE : LogLevel.INFO);
+        adjustConfig.setLogLevel(HSLogger.isEnabled() ? LogLevel.VERBOSE : LogLevel.INFO);
 
         OnAttributionChangedListener attributionListener =
                 new AttributionChangedListener(callback,
                                                connectorCallback,
                                                externalAttributionListener);
-        adjustCOnfig.setOnAttributionChangedListener(attributionListener);
+        adjustConfig.setOnAttributionChangedListener(attributionListener);
         if (context instanceof Application) {
             ((Application) context).registerActivityLifecycleCallbacks(new AdjustLifecycleCallbacks());
         }
 
         AdjustPurchase.init(adjustPurchaseConfig);
-        Adjust.onCreate(adjustCOnfig);
+        Adjust.onCreate(adjustConfig);
         connectorCallback.setAttributionId("attribution_id", Adjust.getAdid());
         callback.onFinished();
+        setAttributionChangedListener(new OnAttributionChangedListener() {
+            @Override
+            public void onAttributionChanged(AdjustAttribution attribution) {
+                Log.d("TAG", "onAttributionChanged: ");
+            }
+        });
+        setAdjustInAppPurchaseValidatorListener(new OnADJPVerificationFinished() {
+            @Override
+            public void onVerificationFinished(ADJPVerificationInfo adjpVerificationInfo) {
+                Log.d("TAG", "onVerificationFinished: ");
+            }
+        });
     }
 
     @Nullable
@@ -138,7 +144,6 @@ public class HSAdjustService extends HSService {
                 Map<String, Object> data = AdjustUtils.convertAttributionDataToMap(attribution);
                 connectorCallback.setConversionData(data);
             }
-            callback.onFinished();
             if (externalAttributionListener != null) {
                 externalAttributionListener.onAttributionChanged(attribution);
             }
