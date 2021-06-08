@@ -76,9 +76,7 @@ public class HSAdjustService extends HSService {
             return;
         }
         AdjustConfig adjustConfig = new AdjustConfig(context, appToken, environment);
-        ADJPConfig adjustPurchaseConfig = new ADJPConfig(appToken, environment);
         HSLogger.setEnabled(true);
-        adjustPurchaseConfig.setLogLevel(HSLogger.isEnabled() ? ADJPLogLevel.VERBOSE : ADJPLogLevel.INFO);
         adjustConfig.setLogLevel(HSLogger.isEnabled() ? LogLevel.VERBOSE : LogLevel.INFO);
 
         OnAttributionChangedListener attributionListener =
@@ -89,9 +87,12 @@ public class HSAdjustService extends HSService {
         if (context instanceof Application) {
             ((Application) context).registerActivityLifecycleCallbacks(new AdjustLifecycleCallbacks());
         }
-
-        AdjustPurchase.init(adjustPurchaseConfig);
         Adjust.onCreate(adjustConfig);
+
+        ADJPConfig adjustPurchaseConfig = new ADJPConfig(appToken, environment);
+        adjustPurchaseConfig.setLogLevel(HSLogger.isEnabled() ? ADJPLogLevel.VERBOSE : ADJPLogLevel.INFO);
+        AdjustPurchase.init(adjustPurchaseConfig);
+
         connectorCallback.setAttributionId("attribution_id", Adjust.getAdid());
         callback.onFinished();
         setAttributionChangedListener(new OnAttributionChangedListener() {
@@ -235,6 +236,10 @@ public class HSAdjustService extends HSService {
                     }
                 }
                 validateSubscribtion(purchase);
+                AdjustPurchase.verifyPurchase(purchase.getSku(),
+                                              purchase.getPurchaseToken(),
+                                              purchase.getPurchaseData(),
+                                              this);
             }
         }
 
