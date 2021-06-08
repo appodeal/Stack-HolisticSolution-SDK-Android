@@ -5,7 +5,6 @@ import android.app.Application;
 import android.content.Context;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -22,10 +21,10 @@ import com.adjust.sdk.purchase.ADJPLogLevel;
 import com.adjust.sdk.purchase.ADJPVerificationInfo;
 import com.adjust.sdk.purchase.AdjustPurchase;
 import com.adjust.sdk.purchase.OnADJPVerificationFinished;
-import com.explorestack.hs.sdk.HSAppParams;
 import com.explorestack.hs.sdk.HSComponentCallback;
 import com.explorestack.hs.sdk.HSComponentParams;
 import com.explorestack.hs.sdk.HSConnectorCallback;
+import com.explorestack.hs.sdk.HSError;
 import com.explorestack.hs.sdk.HSEventsHandler;
 import com.explorestack.hs.sdk.HSIAPValidateCallback;
 import com.explorestack.hs.sdk.HSIAPValidateHandler;
@@ -34,7 +33,6 @@ import com.explorestack.hs.sdk.HSLogger;
 import com.explorestack.hs.sdk.HSService;
 import com.explorestack.hs.sdk.HSUtils;
 
-import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
 import java.util.HashMap;
@@ -66,73 +64,56 @@ public class HSAdjustService extends HSService {
                       @NonNull HSConnectorCallback connectorCallback) {
         JSONObject extra = params.getExtra();
         String appToken = extra.optString("app_token");
-        String environment = extra.optString("environment");
         if (TextUtils.isEmpty(appToken)) {
             callback.onFail(buildError("AppToken not provided"));
             return;
         }
+        String environment = extra.optString("environment");
         if (TextUtils.isEmpty(environment)) {
             callback.onFail(buildError("Environment not provided"));
             return;
         }
         AdjustConfig adjustConfig = new AdjustConfig(context, appToken, environment);
-        HSLogger.setEnabled(true);
-        adjustConfig.setLogLevel(HSLogger.isEnabled() ? LogLevel.VERBOSE : LogLevel.INFO);
+        adjustConfig.setLogLevel(params.isLoggingEnabled() ? LogLevel.VERBOSE : LogLevel.INFO);
 
         OnAttributionChangedListener attributionListener =
-                new AttributionChangedListener(callback,
-                                               connectorCallback,
-                                               externalAttributionListener);
+                new AttributionChangedListener(connectorCallback, externalAttributionListener);
         adjustConfig.setOnAttributionChangedListener(attributionListener);
         if (context instanceof Application) {
             ((Application) context).registerActivityLifecycleCallbacks(new AdjustLifecycleCallbacks());
         }
         Adjust.onCreate(adjustConfig);
+        Adjust.onResume();
 
         ADJPConfig adjustPurchaseConfig = new ADJPConfig(appToken, environment);
-        adjustPurchaseConfig.setLogLevel(HSLogger.isEnabled() ? ADJPLogLevel.VERBOSE : ADJPLogLevel.INFO);
+        adjustPurchaseConfig.setLogLevel(params.isLoggingEnabled() ? ADJPLogLevel.VERBOSE : ADJPLogLevel.INFO);
         AdjustPurchase.init(adjustPurchaseConfig);
 
         connectorCallback.setAttributionId("attribution_id", Adjust.getAdid());
         callback.onFinished();
-        setAttributionChangedListener(new OnAttributionChangedListener() {
-            @Override
-            public void onAttributionChanged(AdjustAttribution attribution) {
-                Log.d("TAG", "onAttributionChanged: ");
-            }
-        });
-        setAdjustInAppPurchaseValidatorListener(new OnADJPVerificationFinished() {
-            @Override
-            public void onVerificationFinished(ADJPVerificationInfo adjpVerificationInfo) {
-                Log.d("TAG", "onVerificationFinished: ");
-            }
-        });
     }
 
     @Nullable
     @Override
     public HSEventsHandler createEventsHandler(@NonNull Context context) {
-        return new HSEventsDelegate(context);
+        return new HSEventsDelegate();
     }
 
     @Nullable
     @Override
     public HSIAPValidateHandler createIAPValidateHandler(@NonNull Context context) {
-        return new HSIAPValidateDelegate(context);
+        return new HSIAPValidateDelegate();
     }
 
     private static final class AttributionChangedListener implements OnAttributionChangedListener {
-        @NonNull
-        private final HSComponentCallback callback;
+
         @NonNull
         private final HSConnectorCallback connectorCallback;
         @Nullable
         private final OnAttributionChangedListener externalAttributionListener;
 
-        public AttributionChangedListener(@NonNull HSComponentCallback callback,
-                                          @NonNull HSConnectorCallback connectorCallback,
+        public AttributionChangedListener(@NonNull HSConnectorCallback connectorCallback,
                                           @Nullable OnAttributionChangedListener externalAttributionListener) {
-            this.callback = callback;
             this.connectorCallback = connectorCallback;
             this.externalAttributionListener = externalAttributionListener;
         }
@@ -186,12 +167,6 @@ public class HSAdjustService extends HSService {
     }
 
     private static final class HSEventsDelegate implements HSEventsHandler {
-        @NonNull
-        private final Context context;
-
-        public HSEventsDelegate(@NonNull Context context) {
-            this.context = context;
-        }
 
         @Override
         public void onEvent(@NonNull String eventName,
@@ -209,37 +184,23 @@ public class HSAdjustService extends HSService {
     }
 
     private final class HSIAPValidateDelegate implements HSIAPValidateHandler, OnADJPVerificationFinished {
-        @NonNull
-        private final Context context;
+
         @Nullable
         private HSIAPValidateCallback pendingCallback;
-
-        public HSIAPValidateDelegate(@NonNull Context context) {
-            this.context = context;
-        }
+        @Nullable
+        private HSInAppPurchase pendingPurchase;
 
         @Override
         public void onValidateInAppPurchase(@NonNull HSInAppPurchase purchase,
                                             @NonNull HSIAPValidateCallback callback) {
             pendingCallback = callback;
+            pendingPurchase = purchase;
             if (purchase != null) {
-                String purchasePrice;
-                if ((purchasePrice = purchase.getPrice()) != null) {
-                    String currency = purchase.getCurrency();
-                    Double price = HSUtils.parsePrice(purchasePrice, currency);
-                    if (price != null) {
-                        // TODO: 15.05.2021 event name
-                        AdjustEvent adjustEvent = new AdjustEvent(purchase.toString());
-                        adjustEvent.setRevenue(price, currency);
-                        adjustEvent.isValid();
-                        Adjust.trackEvent(adjustEvent);
-                    }
-                }
-                validateSubscribtion(purchase);
                 AdjustPurchase.verifyPurchase(purchase.getSku(),
-                                              purchase.getPurchaseToken(),
-                                              purchase.getPurchaseData(),
-                                              this);
+                        purchase.getPurchaseToken(),
+                        purchase.getPurchaseData(),
+                        this);
+//                validateSubscribtion(purchase);
             }
         }
 
@@ -257,13 +218,65 @@ public class HSAdjustService extends HSService {
         }
 
         @Override
-        public void onVerificationFinished(ADJPVerificationInfo adjpVerificationInfo) {
+        public void onVerificationFinished(ADJPVerificationInfo info) {
+            if (info == null) {
+                onFail(buildError("Adjust purchase verification info not provided"));
+            } else {
+                switch (info.getVerificationState()) {
+                    case ADJPVerificationStatePassed: {
+                        if (pendingPurchase != null) {
+                            String purchasePrice;
+                            if ((purchasePrice = pendingPurchase.getPrice()) != null) {
+                                String currency = pendingPurchase.getCurrency();
+                                Double price = HSUtils.parsePrice(purchasePrice, currency);
+                                if (price != null) {
+                                    AdjustEvent event = new AdjustEvent("{RevenueEventPassedToken}");
+                                    event.setRevenue(price, currency);
+                                    Adjust.trackEvent(event);
+                                    onSuccess();
+                                }
+                            }
+                        } else {
+                            onFail(buildError("Purchase not provided"));
+                        }
+                        break;
+                    }
+                    case ADJPVerificationStateFailed: {
+                        AdjustEvent event = new AdjustEvent("{RevenueEventFailedToken}");
+                        Adjust.trackEvent(event);
+                        onFail(buildError("Adjust purchase verification state failed"));
+                        break;
+                    }
+                    case ADJPVerificationStateUnknown: {
+                        AdjustEvent event = new AdjustEvent("{RevenueEventUnknownToken}");
+                        Adjust.trackEvent(event);
+                        onFail(buildError("Adjust purchase verification state unknown"));
+                        break;
+                    }
+                    default: {
+                        AdjustEvent event = new AdjustEvent("{RevenueEventNotVerifiedToken}");
+                        Adjust.trackEvent(event);
+                        onFail(buildError("Adjust purchase not verified"));
+                        break;
+                    }
+                }
+            }
+            if (externalPurchaseValidatorListener != null) {
+                externalPurchaseValidatorListener.onVerificationFinished(info);
+            }
+        }
+
+        private void onSuccess() {
             if (pendingCallback != null) {
                 pendingCallback.onSuccess();
                 pendingCallback = null;
             }
-            if (externalPurchaseValidatorListener != null) {
-                externalPurchaseValidatorListener.onVerificationFinished(adjpVerificationInfo);
+        }
+
+        private void onFail(@NonNull HSError error) {
+            if (pendingCallback != null) {
+                pendingCallback.onFail(error);
+                pendingCallback = null;
             }
         }
     }
