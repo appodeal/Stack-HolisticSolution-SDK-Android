@@ -79,7 +79,7 @@ public class ExampleActivity extends AppCompatActivity {
         additionalEventValues.put("some_parameter", "some_value");
 
         // Create new HSInAppPurchase
-        HSInAppPurchase purchase = HSInAppPurchase.newBuilder()
+        HSInAppPurchase purchase = HSInAppPurchase.newPurchaseBuilder()
                 .withPublicKey("YOUR_PUBLIC_KEY")
                 .withSignature("YOUR_SIGNATURE") //e.g: purchase.getSignature()
                 .withPurchaseData("YOUR_PURCHASE_DATA") //e.g: purchase.getOriginalJson()

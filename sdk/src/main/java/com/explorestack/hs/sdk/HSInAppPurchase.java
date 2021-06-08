@@ -4,6 +4,9 @@ import java.util.Map;
 
 public class HSInAppPurchase {
 
+    public enum PurchaseType {SUBSCRIPTION, PURCHASE}
+
+    private PurchaseType type;
     private String publicKey;
     private String signature;
     private String purchaseData;
@@ -16,6 +19,10 @@ public class HSInAppPurchase {
     private Map<String, String> additionalParameters;
 
     private HSInAppPurchase() {
+    }
+
+    public PurchaseType getType() {
+        return type;
     }
 
     public String getPublicKey() {
@@ -58,8 +65,12 @@ public class HSInAppPurchase {
         return additionalParameters;
     }
 
-    public static HSInAppPurchase.Builder newBuilder() {
-        return new HSInAppPurchase().new Builder();
+    public static Builder newPurchaseBuilder() {
+        return new HSInAppPurchase().new Builder(PurchaseType.PURCHASE);
+    }
+
+    public static Builder newSubscribeBuilder() {
+        return new HSInAppPurchase().new Builder(PurchaseType.SUBSCRIPTION);
     }
 
     @Override
@@ -69,7 +80,8 @@ public class HSInAppPurchase {
 
     public class Builder {
 
-        private Builder() {
+        private Builder(PurchaseType type) {
+            HSInAppPurchase.this.type = type;
         }
 
         public Builder withPublicKey(String publicKey) {

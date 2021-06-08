@@ -41,20 +41,21 @@ import java.util.Map;
 public class HSAdjustService extends HSService {
 
     @Nullable
-    private OnAttributionChangedListener externalAttributionListener;
+    private static OnAttributionChangedListener externalAttributionListener;
     @Nullable
-    private OnADJPVerificationFinished externalPurchaseValidatorListener;
+    private static OnADJPVerificationFinished externalPurchaseValidatorListener;
+    private boolean isTracked;
 
     public HSAdjustService() {
         super("adjust", Adjust.getSdkVersion());
     }
 
-    public void setAttributionChangedListener(@Nullable OnAttributionChangedListener listener) {
-        this.externalAttributionListener = listener;
+    public static void setAttributionChangedListener(@Nullable OnAttributionChangedListener listener) {
+        externalAttributionListener = listener;
     }
 
-    public void setAdjustInAppPurchaseValidatorListener(@Nullable OnADJPVerificationFinished listener) {
-        this.externalPurchaseValidatorListener = listener;
+    public static void setAdjustInAppPurchaseValidatorListener(@Nullable OnADJPVerificationFinished listener) {
+        externalPurchaseValidatorListener = listener;
     }
 
     @Override
@@ -63,6 +64,7 @@ public class HSAdjustService extends HSService {
                       @NonNull HSComponentCallback callback,
                       @NonNull HSConnectorCallback connectorCallback) {
         JSONObject extra = params.getExtra();
+        isTracked = extra.optBoolean("tracking", true);
         String appToken = extra.optString("app_token");
         if (TextUtils.isEmpty(appToken)) {
             callback.onFail(buildError("AppToken not provided"));
@@ -103,6 +105,12 @@ public class HSAdjustService extends HSService {
     @Override
     public HSIAPValidateHandler createIAPValidateHandler(@NonNull Context context) {
         return new HSIAPValidateDelegate();
+    }
+
+    private void trackEvent(AdjustEvent event) {
+        if (isTracked) {
+            Adjust.trackEvent(event);
+        }
     }
 
     private static final class AttributionChangedListener implements OnAttributionChangedListener {
@@ -166,7 +174,7 @@ public class HSAdjustService extends HSService {
         }
     }
 
-    private static final class HSEventsDelegate implements HSEventsHandler {
+    private final class HSEventsDelegate implements HSEventsHandler {
 
         @Override
         public void onEvent(@NonNull String eventName,
@@ -179,7 +187,7 @@ public class HSAdjustService extends HSService {
                     adjustEvent.addPartnerParameter(param.getKey(), String.valueOf(param.getValue()));
                 }
             }
-            Adjust.trackEvent(adjustEvent);
+            trackEvent(adjustEvent);
         }
     }
 
@@ -196,16 +204,23 @@ public class HSAdjustService extends HSService {
             pendingCallback = callback;
             pendingPurchase = purchase;
             if (purchase != null) {
-                AdjustPurchase.verifyPurchase(purchase.getSku(),
-                        purchase.getPurchaseToken(),
-                        purchase.getPurchaseData(),
-                        this);
-//                validateSubscribtion(purchase);
+                switch (purchase.getType()) {
+                    case PURCHASE:
+                        if (isTracked) {
+                            AdjustPurchase.verifyPurchase(purchase.getSku(),
+                                  purchase.getPurchaseToken(),
+                                  purchase.getPurchaseData(),
+                                  this);
+                        }
+                        return;
+                    case SUBSCRIPTION:
+                        validateSubscribtion(purchase);
+                }
             }
         }
 
         private void validateSubscribtion(HSInAppPurchase purchase) {
-            if (purchase.getPrice() != null) {
+            if (purchase.getPrice() != null && isTracked) {
                 AdjustPlayStoreSubscription subscription = new AdjustPlayStoreSubscription(
                         Long.parseLong(purchase.getPrice()),
                         purchase.getCurrency(),
@@ -214,6 +229,7 @@ public class HSAdjustService extends HSService {
                         purchase.getSignature(),
                         purchase.getPurchaseToken());
                 subscription.setPurchaseTime(purchase.getPurchaseTimestamp());
+                Adjust.trackPlayStoreSubscription(subscription);
             }
         }
 
@@ -225,16 +241,12 @@ public class HSAdjustService extends HSService {
                 switch (info.getVerificationState()) {
                     case ADJPVerificationStatePassed: {
                         if (pendingPurchase != null) {
-                            String purchasePrice;
-                            if ((purchasePrice = pendingPurchase.getPrice()) != null) {
-                                String currency = pendingPurchase.getCurrency();
-                                Double price = HSUtils.parsePrice(purchasePrice, currency);
-                                if (price != null) {
-                                    AdjustEvent event = new AdjustEvent("{RevenueEventPassedToken}");
-                                    event.setRevenue(price, currency);
-                                    Adjust.trackEvent(event);
-                                    onSuccess();
-                                }
+                            switch (pendingPurchase.getType()) {
+                                case PURCHASE:
+                                    trackPurchase();
+                                    return;
+                                case SUBSCRIPTION:
+                                    validateSubscribtion(pendingPurchase);
                             }
                         } else {
                             onFail(buildError("Purchase not provided"));
@@ -243,19 +255,19 @@ public class HSAdjustService extends HSService {
                     }
                     case ADJPVerificationStateFailed: {
                         AdjustEvent event = new AdjustEvent("{RevenueEventFailedToken}");
-                        Adjust.trackEvent(event);
+                        trackEvent(event);
                         onFail(buildError("Adjust purchase verification state failed"));
                         break;
                     }
                     case ADJPVerificationStateUnknown: {
                         AdjustEvent event = new AdjustEvent("{RevenueEventUnknownToken}");
-                        Adjust.trackEvent(event);
+                        trackEvent(event);
                         onFail(buildError("Adjust purchase verification state unknown"));
                         break;
                     }
                     default: {
                         AdjustEvent event = new AdjustEvent("{RevenueEventNotVerifiedToken}");
-                        Adjust.trackEvent(event);
+                        trackEvent(event);
                         onFail(buildError("Adjust purchase not verified"));
                         break;
                     }
@@ -263,6 +275,20 @@ public class HSAdjustService extends HSService {
             }
             if (externalPurchaseValidatorListener != null) {
                 externalPurchaseValidatorListener.onVerificationFinished(info);
+            }
+        }
+
+        private void trackPurchase() {
+            String purchasePrice;
+            if ((purchasePrice = pendingPurchase.getPrice()) != null) {
+                String currency = pendingPurchase.getCurrency();
+                Double price = HSUtils.parsePrice(purchasePrice, currency);
+                if (price != null) {
+                    AdjustEvent event = new AdjustEvent("{RevenueEventPassedToken}");
+                    event.setRevenue(price, currency);
+                    trackEvent(event);
+                    onSuccess();
+                }
             }
         }
 
@@ -285,17 +311,17 @@ public class HSAdjustService extends HSService {
 
         private static Map<String, Object> convertAttributionDataToMap(AdjustAttribution attribution) {
             Map<String, Object> data = new HashMap<>();
-            data.put("trackerToken", attribution.trackerToken);
-            data.put("trackerName", attribution.trackerName);
+            data.put("tracker_token", attribution.trackerToken);
+            data.put("tracker_name", attribution.trackerName);
             data.put("network", attribution.network);
             data.put("campaign", attribution.campaign);
             data.put("adgroup", attribution.adgroup);
             data.put("creative", attribution.creative);
-            data.put("clickLabel", attribution.clickLabel);
+            data.put("click_label", attribution.clickLabel);
             data.put("adid", attribution.adid);
-            data.put("costType", attribution.costType);
-            data.put("costAmount", attribution.costAmount);
-            data.put("costCurrency", attribution.costCurrency);
+            data.put("cost_type", attribution.costType);
+            data.put("cost_amount", attribution.costAmount);
+            data.put("cost_currency", attribution.costCurrency);
             return data;
         }
     }
