@@ -44,7 +44,8 @@ public class HSAdjustService extends HSService {
     private static OnAttributionChangedListener externalAttributionListener;
     @Nullable
     private static OnADJPVerificationFinished externalPurchaseValidatorListener;
-    private boolean isTracked;
+
+    private boolean tracking;
 
     public HSAdjustService() {
         super("adjust", Adjust.getSdkVersion());
@@ -74,13 +75,11 @@ public class HSAdjustService extends HSService {
             callback.onFail(buildError("Environment not provided"));
             return;
         }
-        isTracked = extra.optBoolean("tracking", true);
+        tracking = extra.optBoolean("tracking", true);
+
         AdjustConfig adjustConfig = new AdjustConfig(context, appToken, environment);
         adjustConfig.setLogLevel(params.isLoggingEnabled() ? LogLevel.VERBOSE : LogLevel.INFO);
-
-        OnAttributionChangedListener attributionListener =
-                new AttributionChangedListener(connectorCallback, externalAttributionListener);
-        adjustConfig.setOnAttributionChangedListener(attributionListener);
+        adjustConfig.setOnAttributionChangedListener(new AttributionChangedListener(connectorCallback));
         if (context instanceof Application) {
             ((Application) context).registerActivityLifecycleCallbacks(new AdjustLifecycleCallbacks());
         }
@@ -98,7 +97,7 @@ public class HSAdjustService extends HSService {
     @Nullable
     @Override
     public HSEventsHandler createEventsHandler(@NonNull Context context) {
-        return new HSEventsDelegate();
+        return new HSEventsDelegate(tracking);
     }
 
     @Nullable
@@ -111,26 +110,36 @@ public class HSAdjustService extends HSService {
 
         @NonNull
         private final HSConnectorCallback connectorCallback;
-        @Nullable
-        private final OnAttributionChangedListener externalAttributionListener;
 
-        public AttributionChangedListener(@NonNull HSConnectorCallback connectorCallback,
-                                          @Nullable OnAttributionChangedListener externalAttributionListener) {
+        public AttributionChangedListener(@NonNull HSConnectorCallback connectorCallback) {
             this.connectorCallback = connectorCallback;
-            this.externalAttributionListener = externalAttributionListener;
         }
 
         @Override
         public void onAttributionChanged(AdjustAttribution attribution) {
             HSLogger.logInfo("Adjust", "onAttributionChanged");
             if (attribution != null) {
-                // TODO: 15.05.2021 set conversion data
-                Map<String, Object> data = AdjustUtils.convertAttributionDataToMap(attribution);
-                connectorCallback.setConversionData(data);
+                connectorCallback.setConversionData(convertAttributionToMap(attribution));
             }
             if (externalAttributionListener != null) {
                 externalAttributionListener.onAttributionChanged(attribution);
             }
+        }
+
+        private Map<String, Object> convertAttributionToMap(@NonNull AdjustAttribution attribution) {
+            Map<String, Object> data = new HashMap<>();
+            data.put("tracker_token", attribution.trackerToken);
+            data.put("tracker_name", attribution.trackerName);
+            data.put("network", attribution.network);
+            data.put("campaign", attribution.campaign);
+            data.put("adgroup", attribution.adgroup);
+            data.put("creative", attribution.creative);
+            data.put("click_label", attribution.clickLabel);
+            data.put("adid", attribution.adid);
+            data.put("cost_type", attribution.costType);
+            data.put("cost_amount", attribution.costAmount);
+            data.put("cost_currency", attribution.costCurrency);
+            return data;
         }
     }
 
@@ -168,7 +177,13 @@ public class HSAdjustService extends HSService {
         }
     }
 
-    private final class HSEventsDelegate implements HSEventsHandler {
+    private static final class HSEventsDelegate implements HSEventsHandler {
+
+        private final boolean tracking;
+
+        public HSEventsDelegate(boolean tracking) {
+            this.tracking = tracking;
+        }
 
         @Override
         public void onEvent(@NonNull String eventName,
@@ -181,7 +196,7 @@ public class HSAdjustService extends HSService {
                     adjustEvent.addPartnerParameter(param.getKey(), String.valueOf(param.getValue()));
                 }
             }
-            if (isTracked) {
+            if (tracking) {
                 Adjust.trackEvent(adjustEvent);
             }
         }
@@ -199,12 +214,8 @@ public class HSAdjustService extends HSService {
                                             @NonNull HSIAPValidateCallback callback) {
             pendingCallback = callback;
             pendingPurchase = purchase;
-            if (purchase != null) {
-                AdjustPurchase.verifyPurchase(purchase.getSku(),
-                      purchase.getPurchaseToken(),
-                      purchase.getPurchaseData(),
-                      this);
-            }
+            AdjustPurchase.verifyPurchase(purchase.getSku(), purchase.getPurchaseToken(),
+                                          purchase.getPurchaseData(), this);
         }
 
         @Override
@@ -218,9 +229,10 @@ public class HSAdjustService extends HSService {
                             switch (pendingPurchase.getType()) {
                                 case PURCHASE:
                                     trackPurchase(pendingPurchase);
-                                    return;
+                                    break;
                                 case SUBSCRIPTION:
-                                    validateSubscription(pendingPurchase);
+                                    trackSubscription(pendingPurchase);
+                                    break;
                             }
                         } else {
                             onFail(buildError("Purchase not provided"));
@@ -252,17 +264,23 @@ public class HSAdjustService extends HSService {
             }
         }
 
-        private void validateSubscription(@NonNull HSInAppPurchase purchase) {
-            if (purchase.getPrice() != null) {
-                AdjustPlayStoreSubscription subscription = new AdjustPlayStoreSubscription(
-                        Long.parseLong(purchase.getPrice()),
-                        purchase.getCurrency(),
-                        purchase.getSku(),
-                        purchase.getOrderId(),
-                        purchase.getSignature(),
-                        purchase.getPurchaseToken());
-                subscription.setPurchaseTime(purchase.getPurchaseTimestamp());
-                Adjust.trackPlayStoreSubscription(subscription);
+        private void trackSubscription(@NonNull HSInAppPurchase purchase) {
+            String purchasePrice;
+            if ((purchasePrice = purchase.getPrice()) != null) {
+                String currency = purchase.getCurrency();
+                Double price = HSUtils.parsePrice(purchasePrice, currency);
+                if (price != null) {
+                    AdjustPlayStoreSubscription subscription = new AdjustPlayStoreSubscription(
+                            price.longValue(),
+                            currency,
+                            purchase.getSku(),
+                            purchase.getOrderId(),
+                            purchase.getSignature(),
+                            purchase.getPurchaseToken()
+                    );
+                    subscription.setPurchaseTime(purchase.getPurchaseTimestamp());
+                    Adjust.trackPlayStoreSubscription(subscription);
+                }
             }
         }
 
@@ -292,25 +310,6 @@ public class HSAdjustService extends HSService {
                 pendingCallback.onFail(error);
                 pendingCallback = null;
             }
-        }
-    }
-
-    private static final class AdjustUtils {
-
-        private static Map<String, Object> convertAttributionDataToMap(AdjustAttribution attribution) {
-            Map<String, Object> data = new HashMap<>();
-            data.put("tracker_token", attribution.trackerToken);
-            data.put("tracker_name", attribution.trackerName);
-            data.put("network", attribution.network);
-            data.put("campaign", attribution.campaign);
-            data.put("adgroup", attribution.adgroup);
-            data.put("creative", attribution.creative);
-            data.put("click_label", attribution.clickLabel);
-            data.put("adid", attribution.adid);
-            data.put("cost_type", attribution.costType);
-            data.put("cost_amount", attribution.costAmount);
-            data.put("cost_currency", attribution.costCurrency);
-            return data;
         }
     }
 }
