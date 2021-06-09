@@ -22,6 +22,9 @@ public class ExampleActivity extends AppCompatActivity {
 
     private static final String TAG = ExampleActivity.class.getSimpleName();
 
+    static final public String SKU_INFINITE_ACCESS_MONTHLY = "infinite_access_monthly";
+    static final public String SKU_COINS = "coins";
+
     private final HSAppInitializeListener hsAppInitializeListener = new HSAppInitializeListener() {
         @Override
         public void onAppInitialized(@Nullable List<HSError> errors) {
@@ -33,6 +36,9 @@ public class ExampleActivity extends AppCompatActivity {
             }
         }
     };
+
+    ExampleBillingClient billingClient;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +53,10 @@ public class ExampleActivity extends AppCompatActivity {
             // Start HSApp initialization if it's not started yet
             ExampleApplication.initializeHSApp(getApplicationContext());
         }
+
+        billingClient = new ExampleBillingClient(this, SKU_COINS, SKU_INFINITE_ACCESS_MONTHLY);
+        billingClient.start();
+
     }
 
     @Override
