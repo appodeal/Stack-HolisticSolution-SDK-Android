@@ -51,7 +51,7 @@ public class HSApp {
                                              String currency,
                                              HashMap<String, String> additionalParameters,
                                              @Nullable HSInAppPurchaseValidateListener listener) {
-        HSInAppPurchase purchase = HSInAppPurchase.newPurchaseBuilder()
+        HSInAppPurchase purchase = HSInAppPurchase.newBuilder()
                 .withPublicKey(publicKey)
                 .withSignature(signature)
                 .withPurchaseData(purchaseData)

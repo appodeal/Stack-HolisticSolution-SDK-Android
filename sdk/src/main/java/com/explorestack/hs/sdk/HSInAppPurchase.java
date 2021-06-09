@@ -65,11 +65,11 @@ public class HSInAppPurchase {
         return additionalParameters;
     }
 
-    public static Builder newPurchaseBuilder() {
+    public static Builder newBuilder() {
         return new HSInAppPurchase().new Builder(PurchaseType.PURCHASE);
     }
 
-    public static Builder newSubscribeBuilder() {
+    public static Builder newSubscriptionBuilder() {
         return new HSInAppPurchase().new Builder(PurchaseType.SUBSCRIPTION);
     }
 

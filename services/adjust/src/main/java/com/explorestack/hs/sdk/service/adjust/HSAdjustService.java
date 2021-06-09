@@ -64,7 +64,6 @@ public class HSAdjustService extends HSService {
                       @NonNull HSComponentCallback callback,
                       @NonNull HSConnectorCallback connectorCallback) {
         JSONObject extra = params.getExtra();
-        isTracked = extra.optBoolean("tracking", true);
         String appToken = extra.optString("app_token");
         if (TextUtils.isEmpty(appToken)) {
             callback.onFail(buildError("AppToken not provided"));
@@ -75,6 +74,7 @@ public class HSAdjustService extends HSService {
             callback.onFail(buildError("Environment not provided"));
             return;
         }
+        isTracked = extra.optBoolean("tracking", true);
         AdjustConfig adjustConfig = new AdjustConfig(context, appToken, environment);
         adjustConfig.setLogLevel(params.isLoggingEnabled() ? LogLevel.VERBOSE : LogLevel.INFO);
 
@@ -105,12 +105,6 @@ public class HSAdjustService extends HSService {
     @Override
     public HSIAPValidateHandler createIAPValidateHandler(@NonNull Context context) {
         return new HSIAPValidateDelegate();
-    }
-
-    private void trackEvent(AdjustEvent event) {
-        if (isTracked) {
-            Adjust.trackEvent(event);
-        }
     }
 
     private static final class AttributionChangedListener implements OnAttributionChangedListener {
@@ -187,7 +181,9 @@ public class HSAdjustService extends HSService {
                     adjustEvent.addPartnerParameter(param.getKey(), String.valueOf(param.getValue()));
                 }
             }
-            trackEvent(adjustEvent);
+            if (isTracked) {
+                Adjust.trackEvent(adjustEvent);
+            }
         }
     }
 
@@ -204,32 +200,10 @@ public class HSAdjustService extends HSService {
             pendingCallback = callback;
             pendingPurchase = purchase;
             if (purchase != null) {
-                switch (purchase.getType()) {
-                    case PURCHASE:
-                        if (isTracked) {
-                            AdjustPurchase.verifyPurchase(purchase.getSku(),
-                                  purchase.getPurchaseToken(),
-                                  purchase.getPurchaseData(),
-                                  this);
-                        }
-                        return;
-                    case SUBSCRIPTION:
-                        validateSubscribtion(purchase);
-                }
-            }
-        }
-
-        private void validateSubscribtion(HSInAppPurchase purchase) {
-            if (purchase.getPrice() != null && isTracked) {
-                AdjustPlayStoreSubscription subscription = new AdjustPlayStoreSubscription(
-                        Long.parseLong(purchase.getPrice()),
-                        purchase.getCurrency(),
-                        purchase.getSku(),
-                        purchase.getOrderId(),
-                        purchase.getSignature(),
-                        purchase.getPurchaseToken());
-                subscription.setPurchaseTime(purchase.getPurchaseTimestamp());
-                Adjust.trackPlayStoreSubscription(subscription);
+                AdjustPurchase.verifyPurchase(purchase.getSku(),
+                      purchase.getPurchaseToken(),
+                      purchase.getPurchaseData(),
+                      this);
             }
         }
 
@@ -243,10 +217,10 @@ public class HSAdjustService extends HSService {
                         if (pendingPurchase != null) {
                             switch (pendingPurchase.getType()) {
                                 case PURCHASE:
-                                    trackPurchase();
+                                    trackPurchase(pendingPurchase);
                                     return;
                                 case SUBSCRIPTION:
-                                    validateSubscribtion(pendingPurchase);
+                                    validateSubscription(pendingPurchase);
                             }
                         } else {
                             onFail(buildError("Purchase not provided"));
@@ -255,19 +229,19 @@ public class HSAdjustService extends HSService {
                     }
                     case ADJPVerificationStateFailed: {
                         AdjustEvent event = new AdjustEvent("{RevenueEventFailedToken}");
-                        trackEvent(event);
+                        Adjust.trackEvent(event);
                         onFail(buildError("Adjust purchase verification state failed"));
                         break;
                     }
                     case ADJPVerificationStateUnknown: {
                         AdjustEvent event = new AdjustEvent("{RevenueEventUnknownToken}");
-                        trackEvent(event);
+                        Adjust.trackEvent(event);
                         onFail(buildError("Adjust purchase verification state unknown"));
                         break;
                     }
                     default: {
                         AdjustEvent event = new AdjustEvent("{RevenueEventNotVerifiedToken}");
-                        trackEvent(event);
+                        Adjust.trackEvent(event);
                         onFail(buildError("Adjust purchase not verified"));
                         break;
                     }
@@ -278,15 +252,29 @@ public class HSAdjustService extends HSService {
             }
         }
 
-        private void trackPurchase() {
+        private void validateSubscription(@NonNull HSInAppPurchase purchase) {
+            if (purchase.getPrice() != null) {
+                AdjustPlayStoreSubscription subscription = new AdjustPlayStoreSubscription(
+                        Long.parseLong(purchase.getPrice()),
+                        purchase.getCurrency(),
+                        purchase.getSku(),
+                        purchase.getOrderId(),
+                        purchase.getSignature(),
+                        purchase.getPurchaseToken());
+                subscription.setPurchaseTime(purchase.getPurchaseTimestamp());
+                Adjust.trackPlayStoreSubscription(subscription);
+            }
+        }
+
+        private void trackPurchase(@NonNull HSInAppPurchase purchase) {
             String purchasePrice;
-            if ((purchasePrice = pendingPurchase.getPrice()) != null) {
-                String currency = pendingPurchase.getCurrency();
+            if ((purchasePrice = purchase.getPrice()) != null) {
+                String currency = purchase.getCurrency();
                 Double price = HSUtils.parsePrice(purchasePrice, currency);
                 if (price != null) {
                     AdjustEvent event = new AdjustEvent("{RevenueEventPassedToken}");
                     event.setRevenue(price, currency);
-                    trackEvent(event);
+                    Adjust.trackEvent(event);
                     onSuccess();
                 }
             }
