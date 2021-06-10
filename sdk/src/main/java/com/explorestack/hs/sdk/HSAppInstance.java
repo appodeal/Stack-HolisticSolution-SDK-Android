@@ -135,7 +135,7 @@ class HSAppInstance {
     }
 
     public String getVersion() {
-        return BuildConfig.VERSION_NAME;
+        return BuildConfig.HS_VERSION;
     }
 
     @NonNull

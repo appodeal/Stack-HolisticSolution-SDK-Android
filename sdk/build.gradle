@@ -10,7 +10,8 @@ android {
     defaultConfig {
         versionCode 200200200
         versionName "2.0.0"
-        buildConfigField "String", "VERSION_NAME", "\"${versionName}\""
+        buildConfigField "String", "HS_VERSION", "\"${versionName}\""
+        buildConfigField "String", "HS_API_URL", "\"https://a.appbaqend.com/hs\""
         consumerProguardFiles "consumer-rules.pro"
     }
 }
