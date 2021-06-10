@@ -10,12 +10,12 @@ public class HSInAppPurchase {
     private String publicKey;
     private String signature;
     private String purchaseData;
-    private long purchaseTimestamp;
     private String price;
     private String currency;
     private String sku;
     private String orderId;
     private String purchaseToken;
+    private long purchaseTimestamp;
     private Map<String, String> additionalParameters;
 
     private HSInAppPurchase() {
@@ -35,10 +35,6 @@ public class HSInAppPurchase {
 
     public String getPurchaseData() {
         return purchaseData;
-    }
-
-    public long getPurchaseTimestamp() {
-        return purchaseTimestamp;
     }
 
     public String getPrice() {
@@ -61,16 +57,24 @@ public class HSInAppPurchase {
         return purchaseToken;
     }
 
+    public long getPurchaseTimestamp() {
+        return purchaseTimestamp;
+    }
+
     public Map<String, String> getAdditionalParameters() {
         return additionalParameters;
     }
 
-    public static Builder newBuilder() {
-        return new HSInAppPurchase().new Builder(PurchaseType.PURCHASE);
+    public static Builder newBuilder(PurchaseType type) {
+        return new HSInAppPurchase().new Builder(type);
+    }
+
+    public static Builder newPurchaseBuilder() {
+        return newBuilder(PurchaseType.PURCHASE);
     }
 
     public static Builder newSubscriptionBuilder() {
-        return new HSInAppPurchase().new Builder(PurchaseType.SUBSCRIPTION);
+        return newBuilder(PurchaseType.SUBSCRIPTION);
     }
 
     @Override
@@ -89,29 +93,20 @@ public class HSInAppPurchase {
             return this;
         }
 
-
         public Builder withSignature(String signature) {
             HSInAppPurchase.this.signature = signature;
             return this;
         }
-
 
         public Builder withPurchaseData(String purchaseData) {
             HSInAppPurchase.this.purchaseData = purchaseData;
             return this;
         }
 
-        public Builder withPurchaseTimestamp(long purchaseTimestamp) {
-            HSInAppPurchase.this.purchaseTimestamp = purchaseTimestamp;
-            return this;
-        }
-
-
         public Builder withPrice(String price) {
             HSInAppPurchase.this.price = price;
             return this;
         }
-
 
         public Builder withCurrency(String currency) {
             HSInAppPurchase.this.currency = currency;
@@ -123,15 +118,18 @@ public class HSInAppPurchase {
             return this;
         }
 
-
         public Builder withOrderId(String orderId) {
             HSInAppPurchase.this.orderId = orderId;
             return this;
         }
 
-
         public Builder withPurchaseToken(String purchaseToken) {
             HSInAppPurchase.this.purchaseToken = purchaseToken;
+            return this;
+        }
+
+        public Builder withPurchaseTimestamp(long purchaseTimestamp) {
+            HSInAppPurchase.this.purchaseTimestamp = purchaseTimestamp;
             return this;
         }
 

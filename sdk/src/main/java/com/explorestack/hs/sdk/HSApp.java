@@ -44,14 +44,15 @@ public class HSApp {
         return HSAppInstance.get().getVersion();
     }
 
-    public static void validateInAppPurchase(String publicKey,
+    public static void validateInAppPurchase(HSInAppPurchase.PurchaseType purchaseType,
+                                             String publicKey,
                                              String signature,
                                              String purchaseData,
                                              String price,
                                              String currency,
                                              HashMap<String, String> additionalParameters,
                                              @Nullable HSInAppPurchaseValidateListener listener) {
-        HSInAppPurchase purchase = HSInAppPurchase.newBuilder()
+        HSInAppPurchase purchase = HSInAppPurchase.newBuilder(purchaseType)
                 .withPublicKey(publicKey)
                 .withSignature(signature)
                 .withPurchaseData(purchaseData)
