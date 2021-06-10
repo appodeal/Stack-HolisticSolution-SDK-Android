@@ -30,21 +30,20 @@ import java.util.Map;
 public class HSAppsflyerService extends HSService {
 
     @Nullable
-    private AppsFlyerConversionListener externalConversionListener;
+    private static AppsFlyerConversionListener externalConversionListener;
     @Nullable
-    private AppsFlyerInAppPurchaseValidatorListener externalPurchaseValidatorListener;
+    private static AppsFlyerInAppPurchaseValidatorListener externalPurchaseValidatorListener;
 
     public HSAppsflyerService() {
         super("appsflyer", AppsFlyerLib.getInstance().getSdkVersion());
     }
 
-    // TODO: 07.06.2021 external listener
-    public void setAppsFlyerConversionListener(@Nullable AppsFlyerConversionListener listener) {
-        this.externalConversionListener = listener;
+    public static void setAppsFlyerConversionListener(@Nullable AppsFlyerConversionListener listener) {
+        externalConversionListener = listener;
     }
 
-    public void setAppsFlyerInAppPurchaseValidatorListener(@Nullable AppsFlyerInAppPurchaseValidatorListener listener) {
-        this.externalPurchaseValidatorListener = listener;
+    public static void setAppsFlyerInAppPurchaseValidatorListener(@Nullable AppsFlyerInAppPurchaseValidatorListener listener) {
+        externalPurchaseValidatorListener = listener;
     }
 
     @Override
@@ -147,7 +146,7 @@ public class HSAppsflyerService extends HSService {
         }
     }
 
-    private final class HSEventsDelegate implements HSEventsHandler {
+    private static final class HSEventsDelegate implements HSEventsHandler {
 
         @NonNull
         private final Context context;

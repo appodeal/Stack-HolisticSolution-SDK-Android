@@ -24,6 +24,6 @@ repositories {
 }
 
 dependencies {
-    //Consent SDK
+    //Explorestack Consent SDK
     remoteDependency 'com.explorestack:consent:1.0.4'
 }

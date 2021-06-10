@@ -90,6 +90,7 @@ public class HSAdjustService extends HSService {
         adjustPurchaseConfig.setLogLevel(params.isLoggingEnabled() ? ADJPLogLevel.VERBOSE : ADJPLogLevel.INFO);
         AdjustPurchase.init(adjustPurchaseConfig);
 
+        // TODO: 15.05.2021 check attribution_id param in Appdoeal requests
         connectorCallback.setAttributionId("attribution_id", Adjust.getAdid());
         callback.onFinished();
     }

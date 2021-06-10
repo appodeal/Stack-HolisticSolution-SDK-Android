@@ -26,15 +26,14 @@ public class HSFacebookService extends HSService {
     private static final String NOT_REPLACED_ID_PLACEHOLDER = "HS_FB_NOT_REPLACED";
 
     @Nullable
-    private AppEventsLogger eventsLogger;
+    private static AppEventsLogger eventsLogger;
 
     public HSFacebookService() {
         super("facebook", FacebookSdk.getSdkVersion());
     }
 
-    // TODO: 07.06.2021 external event logger
-    public void setEventsLogger(@Nullable AppEventsLogger eventsLogger) {
-        this.eventsLogger = eventsLogger;
+    public static void setEventsLogger(@Nullable AppEventsLogger logger) {
+        eventsLogger = logger;
     }
 
     @Override
@@ -73,7 +72,7 @@ public class HSFacebookService extends HSService {
         return new HSEventsDelegate();
     }
 
-    private final class HSEventsDelegate implements HSEventsHandler {
+    private static final class HSEventsDelegate implements HSEventsHandler {
 
         @Override
         public void onEvent(@NonNull String eventName, @Nullable Map<String, Object> params) {
