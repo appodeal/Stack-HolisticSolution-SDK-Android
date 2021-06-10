@@ -134,9 +134,8 @@ class HSAppInstance {
         inAppPurchaseValidateDispatcher.validateInAppPurchase(purchase, listener);
     }
 
-    // TODO: 31.05.2021
     public String getVersion() {
-        return "2.0.0";
+        return BuildConfig.VERSION_NAME;
     }
 
     @NonNull

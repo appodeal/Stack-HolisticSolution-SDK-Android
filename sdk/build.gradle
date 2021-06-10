@@ -10,6 +10,7 @@ android {
     defaultConfig {
         versionCode 200200200
         versionName "2.0.0"
+        buildConfigField "String", "VERSION_NAME", "\"${versionName}\""
         consumerProguardFiles "consumer-rules.pro"
     }
 }
