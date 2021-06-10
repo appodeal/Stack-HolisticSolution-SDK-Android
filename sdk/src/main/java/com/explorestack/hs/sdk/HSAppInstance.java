@@ -401,7 +401,16 @@ class HSAppInstance {
             private HSComponentParams getParams(@NonNull T component) {
                 JSONObject extra = serverParams.optJSONObject(component.getName());
                 extra = extra == null ? new JSONObject() : extra;
+                configureComponent(component, extra);
                 return new HSComponentParamsImpl(appParams, extra);
+            }
+
+            private void configureComponent(@NonNull T component,
+                                            @NonNull JSONObject extra) {
+                if (extra.has("tracking")) {
+                    boolean tracking = extra.optBoolean("tracking", true);
+                    component.setEventsEnabled(tracking);
+                }
             }
         }
     }
