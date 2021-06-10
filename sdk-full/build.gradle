@@ -11,12 +11,11 @@ android {
         versionCode 0
         versionName obtainVersion(':sdk') + ".${versionCode}"
     }
+}
 
-    buildTypes {
-        release {
-            minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
+repositories {
+    maven {
+        url "https://artifactory.appodeal.com/appodeal"
     }
 }
 
