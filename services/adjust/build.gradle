@@ -1,6 +1,10 @@
 apply plugin: 'com.android.library'
 apply from: '../service.gradle'
 
+ext {
+    sdkVersion = "4.28.1"
+}
+
 android {
     defaultConfig {
         versionCode 1
@@ -17,7 +21,7 @@ repositories {
 
 dependencies {
     //Adjust SDK
-    remoteDependency 'com.adjust.sdk:adjust-android:4.28.1'
+    remoteDependency "com.adjust.sdk:adjust-android:$sdkVersion"
     //Adjust Purchase SDK
     remoteDependency 'com.explorestack.adjust:sdk-purchase:1.1.2'
     //Play Install Referrer Library for Adjust SDK

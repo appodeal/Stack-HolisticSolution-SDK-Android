@@ -1,6 +1,10 @@
 apply plugin: 'com.android.library'
 apply from: '../service.gradle'
 
+ext {
+    sdkVersion = "17.5.0"
+}
+
 android {
     defaultConfig {
         versionCode 1
@@ -12,5 +16,5 @@ android {
 dependencies {
     //Firebase Remote Config SDK
     remoteDependency 'com.google.firebase:firebase-config:19.1.4'
-    remoteDependency 'com.google.firebase:firebase-analytics:17.5.0'
+    remoteDependency "com.google.firebase:firebase-analytics:$sdkVersion"
 }

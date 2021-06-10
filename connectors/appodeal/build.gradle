@@ -1,6 +1,10 @@
 apply plugin: 'com.android.library'
 apply from: '../connector.gradle'
 
+ext {
+    sdkVersion = "2.10.0.0"
+}
+
 android {
     defaultConfig {
         versionCode 1
@@ -17,5 +21,5 @@ repositories {
 
 dependencies {
     //Appodeal SDK
-    remoteDependency 'com.appodeal.ads:sdk:2.10.0.+'
+    remoteDependency "com.appodeal.ads:sdk:$sdkVersion"
 }
