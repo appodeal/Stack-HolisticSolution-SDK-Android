@@ -58,8 +58,8 @@ private generateAsset(variant, HSComponentParent, HSComponentPath) {
     }
     Map<String, String> values = new HashMap<>()
     values.put("name", '\"' + project.name + '\"')
-    values.put("sdk", project.ext.networkVersion)
-    values.put("version", "\"" + project.ext.networkVersion + "." + project.android.defaultConfig.versionName + "\"")
+    values.put("sdk", project.ext.sdkVersion)
+    values.put("version", "\"" + project.ext.sdkVersion + "." + project.android.defaultConfig.versionName + "\"")
     values.put("classpath", "\"" + configClassPath + "\"")
     StringBuilder jsonOutput = new StringBuilder()
     values.forEach(new BiConsumer<String, String>() {
