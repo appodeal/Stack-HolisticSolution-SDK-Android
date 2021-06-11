@@ -1,5 +1,5 @@
 apply plugin: 'com.android.library'
-apply from: "${rootDir}/default.gradle"
+apply from: "${rootDir}/component.gradle"
 
 ext {
     publishGroupId = "com.explorestack.hs.sdk"

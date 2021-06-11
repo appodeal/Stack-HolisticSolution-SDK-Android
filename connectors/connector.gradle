@@ -4,6 +4,10 @@ ext {
     publishGroupId = 'com.explorestack.hs.sdk.connector'
 }
 
+dependencies {
+    compileOnly project(path: ':sdk')
+}
+
 gradle.projectsEvaluated {
     packageDebugAssets.doLast {
         android.libraryVariants.forEach { variant ->

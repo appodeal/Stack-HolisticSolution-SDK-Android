@@ -27,13 +27,15 @@ task clean(type: Delete) {
 }
 
 task publishAllToArtifactory {
-    List<String> dependsTasks = [':sdk:uploadToArtifactory']
+    List<String> dependsTasks = []
+    dependsTasks.add(':sdk:uploadToArtifactory')
     collectServices().forEach {
         dependsTasks.add(":services:${it.name}:uploadToArtifactory")
     }
     collectConnectors().collect {
         dependsTasks.add(":connectors:${it.name}:uploadToArtifactory")
     }
+    dependsTasks.add(':sdk-full:uploadToArtifactory')
     finalizedBy(dependsTasks.toArray())
 }
 

@@ -1,6 +1,75 @@
+import groovy.json.JsonOutput
+
 apply from: "${rootDir}/default.gradle"
 apply from: "${rootDir}/builder.gradle"
 
+configurations {
+    remoteDependency
+}
+
+project.configurations
+        .getByName('api')
+        .extendsFrom(configurations.remoteDependency)
+
 dependencies {
-    compileOnly project(path: ':sdk')
+    remoteDependency "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    remoteDependency 'androidx.annotation:annotation:1.0.0'
+}
+
+task prepareForPublishing(dependsOn: assemble) {
+    doLast {
+        delete publishOutputDir
+        publishOutputDir.mkdirs()
+
+        def remoteDependencies = []
+        remoteDependencies.addAll(project.configurations.remoteDependency.dependencies.asList())
+
+        def dependencies = []
+        remoteDependencies.forEach { dep ->
+            if (dep instanceof ModuleDependency) {
+                def dependency = [
+                        groupId   : dep.group,
+                        artifactId: dep.name,
+                        version   : dep.version
+                ]
+                if (dep.artifacts != null && !dep.artifacts.isEmpty()) {
+                    def type = dep.artifacts.first().type
+                    // We are interested only in 'aar' types
+                    if ("aar" == type) {
+                        dependency['type'] = type
+                    }
+                }
+                if (!dep.excludeRules.isEmpty()) {
+                    def exclusions = []
+                    dep.excludeRules.forEach { ExcludeRule rule ->
+                        def exclusion = [
+                                groupId: rule.group
+                        ]
+                        if (rule.module != null) {
+                            exclusion['artifactId'] = rule.module
+                        }
+                        exclusions.push(exclusion)
+                    }
+                    dependency['exclusions'] = exclusions
+                }
+                dependencies.push(dependency)
+            }
+        }
+        publishOutputDependenciesJson.createNewFile()
+        publishOutputDependenciesJson.write(JsonOutput.toJson(dependencies))
+        copy {
+            from "$buildDir/outputs/aar/${project.name}-publish.aar"
+            into publishOutputDir
+        }
+    }
+}
+
+task uploadToArtifactory(group: PUBLISH_GROUP) {
+    dependsOn prepareForPublishing
+    finalizedBy artifactoryPublish
+}
+
+task uploadToMavenLocal(group: PUBLISH_GROUP) {
+    dependsOn prepareForPublishing
+    finalizedBy publishToMavenLocal
 }
