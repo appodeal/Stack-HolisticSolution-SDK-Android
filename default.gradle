@@ -20,6 +20,6 @@ android {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation 'androidx.annotation:annotation:1.0.0'
+    remoteDependency "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    remoteDependency 'androidx.annotation:annotation:1.0.0'
 }

@@ -1,12 +1,7 @@
-apply from: "${rootDir}/default.gradle"
-apply from: "${rootDir}/builder.gradle"
+apply from: "${rootDir}/component.gradle"
 
 ext {
     publishGroupId = 'com.explorestack.hs.sdk.service'
-}
-
-dependencies {
-    implementation project(path: ':sdk')
 }
 
 gradle.projectsEvaluated {

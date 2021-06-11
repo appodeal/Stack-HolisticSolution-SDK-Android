@@ -2,8 +2,8 @@ apply plugin: 'com.android.library'
 apply from: "${rootDir}/default.gradle"
 
 ext {
-    publishGroupId = "com.explorestack.hs"
-    publishArtifactId = "sdk"
+    publishGroupId = "com.explorestack.hs.sdk"
+    publishArtifactId = "core"
 }
 
 android {

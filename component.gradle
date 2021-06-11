@@ -1,0 +1,6 @@
+apply from: "${rootDir}/default.gradle"
+apply from: "${rootDir}/builder.gradle"
+
+dependencies {
+    compileOnly project(path: ':sdk')
+}
