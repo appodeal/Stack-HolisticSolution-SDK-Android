@@ -18,6 +18,8 @@ import com.explorestack.hs.sdk.HSInAppPurchase;
 import com.explorestack.hs.sdk.HSRegulator;
 import com.explorestack.hs.sdk.HSUtils;
 
+import org.json.JSONException;
+
 import java.util.Map;
 
 public class HSAppodealConnector extends HSConnector<Consent> {
@@ -31,6 +33,15 @@ public class HSAppodealConnector extends HSConnector<Consent> {
                            @NonNull HSComponentParams params,
                            @NonNull HSComponentCallback callback,
                            @Nullable HSRegulator<Consent> regulator) {
+        String trackUUID = null;
+        try {
+            trackUUID = params.getExtra().getString("track_id");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        if (trackUUID != null){
+            Appodeal.setExtraData("track_id", trackUUID);
+        }
         if (activity == null) {
             callback.onFail(buildError("Activity not provided"));
             return;

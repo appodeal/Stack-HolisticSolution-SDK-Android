@@ -3,6 +3,7 @@ package com.explorestack.hs.sdk;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 class HSComponentParamsImpl implements HSComponentParams {
@@ -23,6 +24,15 @@ class HSComponentParamsImpl implements HSComponentParams {
         appKey = appParams.getAppKey();
         adType = appParams.getAdType();
         extra = serverExtra;
+        putTrackUUID();
+    }
+
+    private void putTrackUUID() {
+        try {
+            extra.put("track_id", HSAppInstance.get().getTrackId());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
