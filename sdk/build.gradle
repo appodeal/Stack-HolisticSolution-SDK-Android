@@ -1,15 +1,17 @@
 apply plugin: 'com.android.library'
-apply from: "${rootDir}/default.gradle"
+apply from: "${rootDir}/component.gradle"
 
 ext {
-    publishGroupId = "com.explorestack.hs"
-    publishArtifactId = "sdk"
+    publishGroupId = "com.explorestack.hs.sdk"
+    publishArtifactId = "core"
 }
 
 android {
     defaultConfig {
         versionCode 200200200
         versionName "2.0.0"
+        buildConfigField "String", "HS_VERSION", "\"${versionName}\""
+        buildConfigField "String", "HS_API_URL", "\"https://a.appbaqend.com/hs\""
         consumerProguardFiles "consumer-rules.pro"
     }
 }

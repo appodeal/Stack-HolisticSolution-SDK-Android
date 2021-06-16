@@ -162,7 +162,7 @@ class HSApiRequest<RequestDataType, ResponseDataType> extends HSNetworkRequest<R
                             @NonNull HSAppParams appParams,
                             @NonNull Callback<JSONObject, HSError> callback) {
         new HSApiRequest.Builder<JSONObject, JSONObject>()
-                .setUrl("http://herokuapp.appodeal.com/android_hs_init")
+                .setUrl(BuildConfig.HS_API_URL + "/init")
                 .setMethod(HSNetworkRequest.Method.Post)
                 .setDataBinder(new HSApiRequest.InitRequestDataBinder(context, appParams))
                 .setCallback(callback)

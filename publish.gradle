@@ -4,7 +4,6 @@ apply plugin: 'com.jfrog.artifactory'
 apply plugin: 'maven-publish'
 
 /** Specific key for group publishing tasks */
-def PUBLISH_GROUP = "Artifactory publishing"
 
 artifactory {
     contextUrl = 'https://artifactory.appodeal.com/artifactory'
@@ -37,7 +36,7 @@ project.afterEvaluate {
             "_${project.name}_"(MavenPublication) {
                 groupId = publishGroupId
                 artifactId = project.hasProperty('publishArtifactId') ? publishArtifactId : project.name
-                version = project.android.defaultConfig.versionName
+                version = obtainHSComponentAarVersion(project)
                 artifact "${project.buildDir}/outputs/aar/${project.name}-release.aar"
                 pom.withXml {
                     def dependenciesNode = asNode().appendNode('dependencies')
@@ -49,16 +48,6 @@ project.afterEvaluate {
             }
         }
     }
-}
-
-task uploadToArtifactory(group: PUBLISH_GROUP) {
-    dependsOn prepareForPublishing
-    finalizedBy artifactoryPublish
-}
-
-task uploadToMavenLocal(group: PUBLISH_GROUP) {
-    dependsOn prepareForPublishing
-    finalizedBy publishToMavenLocal
 }
 
 void includeRemoteDependencies(String dependenciesFilePath, Node dependenciesNode) {
@@ -146,4 +135,10 @@ static void addExclusion(Node exclusionsNode, String groupId, String artifactId)
     if (artifactId != null) {
         exclusionNode.appendNode('artifactId', artifactId)
     }
+}
+
+ext {
+    PUBLISH_GROUP = "Artifactory publishing"
+    publishOutputDir = file(buildDir.path + '/publish')
+    publishOutputDependenciesJson = file(publishOutputDir.path + '/dependencies.json')
 }

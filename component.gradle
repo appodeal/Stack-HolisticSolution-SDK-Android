@@ -1,11 +1,8 @@
 import groovy.json.JsonOutput
 
-File publishOutputDir = file(buildDir.path + '/publish')
-File publishOutputDependenciesJson = file(publishOutputDir.path + '/dependencies.json')
+apply from: "${rootDir}/default.gradle"
+apply from: "${rootDir}/builder.gradle"
 
-/**
- * Custom configuration for correct dependencies merge for different distribution schemes
- */
 configurations {
     remoteDependency
 }
@@ -13,6 +10,11 @@ configurations {
 project.configurations
         .getByName('api')
         .extendsFrom(configurations.remoteDependency)
+
+dependencies {
+    remoteDependency "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    remoteDependency 'androidx.annotation:annotation:1.0.0'
+}
 
 task prepareForPublishing(dependsOn: assemble) {
     doLast {
@@ -60,4 +62,14 @@ task prepareForPublishing(dependsOn: assemble) {
             into publishOutputDir
         }
     }
+}
+
+task uploadToArtifactory(group: PUBLISH_GROUP) {
+    dependsOn prepareForPublishing
+    finalizedBy artifactoryPublish
+}
+
+task uploadToMavenLocal(group: PUBLISH_GROUP) {
+    dependsOn prepareForPublishing
+    finalizedBy publishToMavenLocal
 }

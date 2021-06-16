@@ -1,3 +1,5 @@
+import groovy.json.JsonOutput
+
 apply plugin: 'com.android.library'
 apply from: "${rootDir}/default.gradle"
 
@@ -13,21 +15,46 @@ android {
     }
 }
 
-repositories {
-    maven {
-        url "https://artifactory.appodeal.com/appodeal"
+task prepareForPublishing(dependsOn: assemble) {
+    doLast {
+        delete publishOutputDir
+        publishOutputDir.mkdirs()
+
+        List<Project> hsComponentProjects = [project(':sdk')]
+        collectServices().forEach { project ->
+            hsComponentProjects.add(project)
+        }
+        collectConnectors().forEach { project ->
+            hsComponentProjects.add(project)
+        }
+        collectRegulators().forEach { project ->
+            hsComponentProjects.add(project)
+        }
+
+        def dependencies = []
+        hsComponentProjects.forEach { project ->
+            def dependency = [
+                    groupId   : project.group,
+                    artifactId: project.name,
+                    version   : obtainHSComponentAarVersion(project)
+            ]
+            dependencies.push(dependency)
+        }
+        publishOutputDependenciesJson.createNewFile()
+        publishOutputDependenciesJson.write(JsonOutput.toJson(dependencies))
+        copy {
+            from "$buildDir/outputs/aar/${project.name}-publish.aar"
+            into publishOutputDir
+        }
     }
 }
 
-dependencies {
-    implementation project(':sdk')
-    collectServices().forEach { project ->
-        implementation(project)
-    }
-    collectConnectors().forEach { project ->
-        implementation(project)
-    }
-    collectRegulators().forEach { project ->
-        implementation(project)
-    }
+task uploadToArtifactory(group: PUBLISH_GROUP) {
+    dependsOn prepareForPublishing
+    finalizedBy artifactoryPublish
+}
+
+task uploadToMavenLocal(group: PUBLISH_GROUP) {
+    dependsOn prepareForPublishing
+    finalizedBy publishToMavenLocal
 }

@@ -1,5 +1,4 @@
 apply plugin: 'kotlin-android'
-apply from: "${rootDir}/configurations.gradle"
 apply from: "${rootDir}/publish.gradle"
 
 android {
@@ -17,9 +16,4 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-}
-
-dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation 'androidx.annotation:annotation:1.0.0'
 }

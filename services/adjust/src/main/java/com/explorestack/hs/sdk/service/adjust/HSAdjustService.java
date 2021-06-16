@@ -45,8 +45,6 @@ public class HSAdjustService extends HSService {
     @Nullable
     private static OnADJPVerificationFinished externalPurchaseValidatorListener;
 
-    private boolean tracking;
-
     public HSAdjustService() {
         super("adjust", Adjust.getSdkVersion());
     }
@@ -75,7 +73,6 @@ public class HSAdjustService extends HSService {
             callback.onFail(buildError("Environment not provided"));
             return;
         }
-        tracking = extra.optBoolean("tracking", true);
 
         AdjustConfig adjustConfig = new AdjustConfig(context, appToken, environment);
         adjustConfig.setLogLevel(params.isLoggingEnabled() ? LogLevel.VERBOSE : LogLevel.INFO);
@@ -98,7 +95,7 @@ public class HSAdjustService extends HSService {
     @Nullable
     @Override
     public HSEventsHandler createEventsHandler(@NonNull Context context) {
-        return new HSEventsDelegate(tracking);
+        return new HSEventsDelegate();
     }
 
     @Nullable
@@ -180,12 +177,6 @@ public class HSAdjustService extends HSService {
 
     private static final class HSEventsDelegate implements HSEventsHandler {
 
-        private final boolean tracking;
-
-        public HSEventsDelegate(boolean tracking) {
-            this.tracking = tracking;
-        }
-
         @Override
         public void onEvent(@NonNull String eventName,
                             @Nullable Map<String, Object> params) {
@@ -197,9 +188,7 @@ public class HSAdjustService extends HSService {
                     adjustEvent.addPartnerParameter(param.getKey(), String.valueOf(param.getValue()));
                 }
             }
-            if (tracking) {
-                Adjust.trackEvent(adjustEvent);
-            }
+            Adjust.trackEvent(adjustEvent);
         }
     }
 
@@ -216,7 +205,7 @@ public class HSAdjustService extends HSService {
             pendingCallback = callback;
             pendingPurchase = purchase;
             AdjustPurchase.verifyPurchase(purchase.getSku(), purchase.getPurchaseToken(),
-                                          purchase.getPurchaseData(), this);
+                    purchase.getPurchaseData(), this);
         }
 
         @Override

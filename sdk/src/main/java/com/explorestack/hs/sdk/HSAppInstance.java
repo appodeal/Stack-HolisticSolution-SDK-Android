@@ -134,9 +134,8 @@ class HSAppInstance {
         inAppPurchaseValidateDispatcher.validateInAppPurchase(purchase, listener);
     }
 
-    // TODO: 31.05.2021
     public String getVersion() {
-        return "2.0.0";
+        return BuildConfig.HS_VERSION;
     }
 
     @NonNull
@@ -401,7 +400,16 @@ class HSAppInstance {
             private HSComponentParams getParams(@NonNull T component) {
                 JSONObject extra = serverParams.optJSONObject(component.getName());
                 extra = extra == null ? new JSONObject() : extra;
+                configureComponent(component, extra);
                 return new HSComponentParamsImpl(appParams, extra);
+            }
+
+            private void configureComponent(@NonNull T component,
+                                            @NonNull JSONObject extra) {
+                if (extra.has("tracking")) {
+                    boolean tracking = extra.optBoolean("tracking", true);
+                    component.setEventsEnabled(tracking);
+                }
             }
         }
     }
