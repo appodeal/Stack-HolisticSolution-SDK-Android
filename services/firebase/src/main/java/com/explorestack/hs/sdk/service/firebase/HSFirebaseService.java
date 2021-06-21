@@ -29,20 +29,18 @@ import java.util.Map;
 
 public class HSFirebaseService extends HSService {
 
-    // TODO: 07.06.2021 parse value key
     @Nullable
-    private Map<String, Object> targetValuesKeys;
+    private static FirebaseAnalytics firebaseAnalytics;
 
     @Nullable
-    private FirebaseAnalytics firebaseAnalytics;
+    private List<String> configKeys;
 
     public HSFirebaseService() {
         super("firebase", null);
     }
 
-    // TODO: 07.06.2021 set external analytics
-    public void setFirebaseAnalytics(@Nullable FirebaseAnalytics analytics) {
-        this.firebaseAnalytics = analytics;
+    public static void setFirebaseAnalytics(@Nullable FirebaseAnalytics analytics) {
+        firebaseAnalytics = analytics;
     }
 
     @Override
@@ -60,8 +58,10 @@ public class HSFirebaseService extends HSService {
         if (extra.has("expiration_duration")) {
             minimumFetchIntervalInSeconds = extra.optLong("expiration_duration");
         }
-        final boolean isTargetValuesKeysProvided =
-                targetValuesKeys != null && !targetValuesKeys.isEmpty();
+        if (extra.has("config_keys")) {
+            configKeys = HSUtils.jsonArrayToList(extra.optJSONArray("config_keys"));
+        }
+        final boolean isConfigKeysProvided = configKeys != null && !configKeys.isEmpty();
         final FirebaseRemoteConfig firebaseRemoteConfig =
                 FirebaseRemoteConfig.getInstance(firebaseApp);
         final FirebaseRemoteConfigSettings.Builder configSettingsBuilder =
@@ -71,23 +71,19 @@ public class HSFirebaseService extends HSService {
         }
         final FirebaseRemoteConfigSettings configSettings = configSettingsBuilder.build();
         firebaseRemoteConfig.setConfigSettingsAsync(configSettings);
-        if (isTargetValuesKeysProvided) {
-            firebaseRemoteConfig.setDefaultsAsync(targetValuesKeys);
-        }
         firebaseRemoteConfig
                 .fetchAndActivate()
                 .addOnCompleteListener(new OnCompleteListener<Boolean>() {
                     @Override
                     public void onComplete(@NonNull Task<Boolean> task) {
                         List<String> keywords = new ArrayList<>();
-                        if (isTargetValuesKeysProvided) {
-                            for (String key : targetValuesKeys.keySet()) {
+                        if (isConfigKeysProvided) {
+                            for (String key : configKeys) {
                                 FirebaseRemoteConfigValue value = firebaseRemoteConfig.getValue(key);
                                 keywords.add(value.asString());
                             }
                         } else {
-                            for (FirebaseRemoteConfigValue value
-                                    : firebaseRemoteConfig.getAll().values()) {
+                            for (FirebaseRemoteConfigValue value : firebaseRemoteConfig.getAll().values()) {
                                 keywords.add(value.asString());
                             }
                         }
@@ -112,7 +108,7 @@ public class HSFirebaseService extends HSService {
         return new HSEventsDelegate();
     }
 
-    private final class HSEventsDelegate implements HSEventsHandler {
+    private static final class HSEventsDelegate implements HSEventsHandler {
 
         @Override
         public void onEvent(@NonNull String eventName, @Nullable Map<String, Object> params) {
