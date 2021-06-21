@@ -222,7 +222,7 @@ class HSAppInstance {
             if (isListNullOrEmpty(connectors)) {
                 addError(HSError.NoConnectors);
             }
-            final HSAppParamsImpl appParams = new HSAppParamsImpl(appConfig);
+            final HSAppParamsImpl appParams = new HSAppParamsImpl(contextProvider.getContext(), appConfig);
             // Regulator initialization
             initializeComponents(regulators,
                     new HSComponentInitializerBuilder<HSRegulator>(app, contextProvider, appParams) {

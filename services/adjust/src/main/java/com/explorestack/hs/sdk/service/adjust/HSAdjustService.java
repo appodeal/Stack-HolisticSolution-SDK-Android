@@ -73,7 +73,7 @@ public class HSAdjustService extends HSService {
             callback.onFail(buildError("Environment not provided"));
             return;
         }
-
+        String adId = params.getAdId();
         AdjustConfig adjustConfig = new AdjustConfig(context, appToken, environment);
         adjustConfig.setLogLevel(params.isLoggingEnabled() ? LogLevel.VERBOSE : LogLevel.INFO);
         adjustConfig.setOnAttributionChangedListener(new AttributionChangedListener(connectorCallback));
@@ -87,8 +87,7 @@ public class HSAdjustService extends HSService {
         adjustPurchaseConfig.setLogLevel(params.isLoggingEnabled() ? ADJPLogLevel.VERBOSE : ADJPLogLevel.INFO);
         AdjustPurchase.init(adjustPurchaseConfig);
 
-        // TODO: 15.05.2021 check attribution_id param in Appdoeal requests
-        connectorCallback.setAttributionId("attribution_id", Adjust.getAdid());
+        connectorCallback.setAttributionId("attribution_id", adId);
         callback.onFinished();
     }
 

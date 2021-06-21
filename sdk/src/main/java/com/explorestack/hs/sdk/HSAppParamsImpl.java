@@ -1,5 +1,6 @@
 package com.explorestack.hs.sdk;
 
+import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -16,13 +17,16 @@ class HSAppParamsImpl implements HSAppParams {
     private final String appKey;
     @Nullable
     private final Integer adType;
+    @Nullable
+    private final String adId;
 
-    HSAppParamsImpl(@NonNull HSAppConfig appConfig) {
+    HSAppParamsImpl(@NonNull Context context, @NonNull HSAppConfig appConfig) {
         isDebugEnabled = appConfig.isDebugEnabled();
         isLoggingEnabled = appConfig.isLoggingEnabled();
         componentInitializeTimeout = appConfig.getComponentInitializeTimeout();
         appKey = appConfig.getAppKey();
         adType = appConfig.getAdType();
+        adId = HSCoreUtils.getAdvertisingUUID(context);
     }
 
     @Override
@@ -45,6 +49,12 @@ class HSAppParamsImpl implements HSAppParams {
     @Override
     public Integer getAdType() {
         return adType;
+    }
+
+    @Nullable
+    @Override
+    public String getAdId() {
+        return adId;
     }
 
     @Override

@@ -14,6 +14,8 @@ class HSComponentParamsImpl implements HSComponentParams {
     private final String appKey;
     @Nullable
     private final Integer adType;
+    @Nullable
+    private final String adId;
     @NonNull
     private final JSONObject extra;
 
@@ -23,6 +25,7 @@ class HSComponentParamsImpl implements HSComponentParams {
         isLoggingEnabled = appParams.isLoggingEnabled();
         appKey = appParams.getAppKey();
         adType = appParams.getAdType();
+        adId = appParams.getAdId();
         extra = serverExtra;
         putTrackUUID();
     }
@@ -61,5 +64,11 @@ class HSComponentParamsImpl implements HSComponentParams {
     @Override
     public JSONObject getExtra() {
         return extra;
+    }
+
+    @Nullable
+    @Override
+    public String getAdId() {
+        return adId;
     }
 }

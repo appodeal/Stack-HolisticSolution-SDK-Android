@@ -19,4 +19,7 @@ public interface HSComponentParams {
 
     @NonNull
     JSONObject getExtra();
+
+    @Nullable
+    String getAdId();
 }

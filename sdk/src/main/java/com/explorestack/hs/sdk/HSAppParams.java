@@ -15,4 +15,7 @@ public interface HSAppParams {
 
     @Nullable
     Integer getAdType();
+
+    @Nullable
+    String getAdId();
 }
