@@ -286,9 +286,7 @@ abstract class HSNetworkRequest<RequestDataType, ResponseDataType, ErrorResultTy
                 : null;
     }
 
-    protected String getBaseUrl() throws Exception {
-        return "TODO: implement url";
-    }
+    protected abstract String getBaseUrl() throws Exception;
 
     public void cancel() {
         currentState = State.Canceled;
