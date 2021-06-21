@@ -26,6 +26,8 @@ class HSStackRegulator : HSRegulator<Consent>("stack consent manager", null) {
             return
         }
         _consentManager = ConsentManager.getInstance(context)
+        // TODO: 21.06.2021 set extra data for tracking id
+        // consentManager.setExtraData("track_id", params.trackId)
         consentManager.requestConsentInfoUpdate(
             params.appKey!!,
             object : ConsentInfoUpdateListener {

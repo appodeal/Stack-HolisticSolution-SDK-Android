@@ -13,6 +13,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.security.NetworkSecurityPolicy;
 import android.telephony.TelephonyManager;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Pair;
 import android.webkit.WebSettings;
@@ -85,18 +86,18 @@ class HSCoreUtils {
         }
     }
 
+    @NonNull
     static String getAdvertisingUUID(@NonNull Context context) {
         SharedPreferences sharedPref = context.getSharedPreferences(SHARED_PREFERENCES_NAME,
                                                                     Context.MODE_PRIVATE);
-        if (sharedPref.contains(UUID_ID)) {
-            return sharedPref.getString(UUID_ID, null);
-        } else {
-            String uuid = UUID.randomUUID().toString();
+        String uuid = sharedPref.getString(UUID_ID, null);
+        if (TextUtils.isEmpty(uuid)) {
+            uuid = UUID.randomUUID().toString();
             SharedPreferences.Editor editor = sharedPref.edit();
             editor.putString(UUID_ID, uuid);
             editor.apply();
-            return uuid;
         }
+        return uuid;
     }
 
     @SafeVarargs

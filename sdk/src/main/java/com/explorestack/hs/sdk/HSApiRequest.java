@@ -7,8 +7,6 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.explorestack.hs.sdk.HSAdvertisingInfo.AdvertisingProfile;
-
 import org.apache.http.conn.ConnectTimeoutException;
 import org.json.JSONObject;
 
@@ -239,7 +237,7 @@ class HSApiRequest<RequestDataType, ResponseDataType> extends HSNetworkRequest<R
             target.put("timezone", localTime);
             target.put("local_time", System.currentTimeMillis() / 1000);
 
-            AdvertisingProfile advertisingProfile = HSAdvertisingInfo.updateInfo(context);
+            HSAdvertisingProfile advertisingProfile = appParams.getAdvertisingProfile();
             if (advertisingProfile != null) {
                 target.put("ifa", advertisingProfile.getId(context));
                 target.put("advertising_tracking", advertisingProfile.isLimitAdTrackingEnabled() ? "0" : "1");

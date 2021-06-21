@@ -222,7 +222,8 @@ class HSAppInstance {
             if (isListNullOrEmpty(connectors)) {
                 addError(HSError.NoConnectors);
             }
-            final HSAppParamsImpl appParams = new HSAppParamsImpl(appConfig);
+            final HSAdvertisingProfile advertisingProfile = HSAdvertisingInfo.updateInfo(targetContext);
+            final HSAppParamsImpl appParams = new HSAppParamsImpl(appConfig, app, advertisingProfile);
             // Regulator initialization
             initializeComponents(regulators,
                     new HSComponentInitializerBuilder<HSRegulator>(app, contextProvider, appParams) {
