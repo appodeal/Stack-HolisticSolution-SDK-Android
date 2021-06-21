@@ -45,6 +45,9 @@ public class HSAdjustService extends HSService {
     @Nullable
     private static OnADJPVerificationFinished externalPurchaseValidatorListener;
 
+    @Nullable
+    private Map<String, String> eventTokens = null;
+
     public HSAdjustService() {
         super("adjust", Adjust.getSdkVersion());
     }
@@ -73,7 +76,9 @@ public class HSAdjustService extends HSService {
             callback.onFail(buildError("Environment not provided"));
             return;
         }
-
+        if (extra.has("events")) {
+            eventTokens = HSUtils.jsonToMap(extra.optJSONObject("events"));
+        }
         AdjustConfig adjustConfig = new AdjustConfig(context, appToken, environment);
         adjustConfig.setLogLevel(params.isLoggingEnabled() ? LogLevel.VERBOSE : LogLevel.INFO);
         adjustConfig.setOnAttributionChangedListener(new AttributionChangedListener(connectorCallback));

@@ -33,7 +33,7 @@ public class HSFirebaseService extends HSService {
     private static FirebaseAnalytics firebaseAnalytics;
 
     @Nullable
-    private List<String> configKeys;
+    private List<String> configKeys = null;
 
     public HSFirebaseService() {
         super("firebase", null);

@@ -7,11 +7,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Currency;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -116,5 +119,17 @@ public class HSUtils {
             }
         }
         return list;
+    }
+
+    @NonNull
+    public static <T> Map<String, T> jsonToMap(@Nullable JSONObject jsonObject) {
+        Map<String, T> map = new HashMap<>();
+        if (jsonObject != null) {
+            for (Iterator<String> it = jsonObject.keys(); it.hasNext(); ) {
+                String key = it.next();
+                map.put(key, (T) jsonObject.opt(key));
+            }
+        }
+        return map;
     }
 }
