@@ -31,7 +31,6 @@ class HSApiRequest<RequestDataType, ResponseDataType> extends HSNetworkRequest<R
     private HSApiRequest(@NonNull Method method,
                          @Nullable RequestDataType requestData) {
         super(method, null, requestData);
-        addContentEncoder(new GZIPRequestDataEncoder<RequestDataType, ResponseDataType, HSError>());
     }
 
     @Override
