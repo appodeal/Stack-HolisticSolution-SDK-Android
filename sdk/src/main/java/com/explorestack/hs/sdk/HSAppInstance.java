@@ -24,10 +24,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-import static com.explorestack.hs.sdk.HSComponentAssetManager.getConnectors;
-import static com.explorestack.hs.sdk.HSComponentAssetManager.getRegulators;
-import static com.explorestack.hs.sdk.HSComponentAssetManager.getServices;
-
 class HSAppInstance {
 
     private static final String TAG = HSApp.class.getSimpleName();
@@ -41,9 +37,6 @@ class HSAppInstance {
         }
         return instance;
     }
-
-    // TODO: 03.06.2021 remove
-    HSRegulator regulator;
 
     @NonNull
     private final HSEventsDispatcher eventsDispatcher = new HSEventsDispatcher(this);
@@ -209,13 +202,9 @@ class HSAppInstance {
         public void run() {
             Context targetContext = contextProvider.getApplicationContext();
             HSComponentAssetManager.findHSComponents(targetContext);
-            final List<HSComponentAssetParams> regulators = getRegulators();
-            final List<HSComponentAssetParams> services = getServices();
-            final List<HSComponentAssetParams> connectors = getConnectors();
+            final List<HSService> services = new ArrayList<>();
+            final List<HSConnector> connectors = new ArrayList<>();
 
-            if (isListNullOrEmpty(regulators)) {
-                addError(HSError.NoRegulator);
-            }
             if (isListNullOrEmpty(services)) {
                 addError(HSError.NoServices);
             }
@@ -224,60 +213,21 @@ class HSAppInstance {
             }
             final HSAdvertisingProfile advertisingProfile = HSAdvertisingInfo.updateInfo(targetContext);
             final HSAppParamsImpl appParams = new HSAppParamsImpl(appConfig, app, advertisingProfile);
-            // Regulator initialization
-            initializeComponents(regulators,
-                    new HSComponentInitializerBuilder<HSRegulator>(app, contextProvider, appParams) {
-
-                        @Override
-                        boolean isEnable(@NonNull HSComponentAssetParams assetParams) {
-                            return true;
-                        }
-
-                        @Override
-                        void process(@NonNull HSRegulator component,
-                                     @NonNull HSComponentParams params,
-                                     @NonNull HSComponentCallback callback) {
-                            component.start(contextProvider.getContext(), params, callback);
-                        }
-                    });
 
             HSNetworkRequest.Callback<JSONObject, HSError> callback
                     = new HSNetworkRequest.Callback<JSONObject, HSError>() {
                 @Override
                 public void onSuccess(@Nullable JSONObject result) {
-                    // Connectors initialization
-                    // TODO: 07.06.2021 regulator
-                    initializeComponents(connectors,
-                            new HSComponentInitializerBuilder<HSConnector>(app, contextProvider, appParams, result) {
-
-                                @Override
-                                boolean isEnable(@NonNull HSComponentAssetParams assetParams) {
-                                    return true;
-                                }
-
-                                @Override
-                                void process(@NonNull HSConnector component,
-                                             @NonNull HSComponentParams params,
-                                             @NonNull HSComponentCallback callback) {
-                                    component.initialize(contextProvider.getActivity(),
-                                                         params,
-                                                         callback,
-                                                         null);
-                                }
-                            });
                     // Services initialization
-                    initializeComponents(services,
-                            new HSComponentInitializerBuilder<HSService>(app, contextProvider, appParams, result) {
-                                @Override
-                                void process(@NonNull HSService component,
-                                             @NonNull HSComponentParams params,
-                                             @NonNull HSComponentCallback callback) {
-                                    component.start(contextProvider.getContext(),
-                                                    params,
-                                                    callback,
-                                                    app.getConnectorDelegate());
-                                }
-                            });
+                    initializeComponents(
+                            services,
+                            new HSServiceInitializerBuilder(app, contextProvider, appParams, result)
+                    );
+                    // Connectors initialization
+                    initializeComponents(
+                            connectors,
+                            new HSConnectorInitializerBuilder(app, contextProvider, appParams)
+                    );
                     listener.onAppInitialized(getErrors());
                 }
 
@@ -286,6 +236,11 @@ class HSAppInstance {
                     if (result != null) {
                         addError(result);
                     }
+                    // Connectors initialization
+                    initializeComponents(
+                            connectors,
+                            new HSConnectorInitializerBuilder(app, contextProvider, appParams)
+                    );
                     listener.onAppInitialized(getErrors());
                 }
             };
@@ -293,21 +248,18 @@ class HSAppInstance {
         }
 
         private <T extends HSComponent> void initializeComponents(
-                @NonNull List<HSComponentAssetParams> hsComponentAssetParams,
+                @NonNull List<T> registeredComponents,
                 @NonNull HSComponentInitializerBuilder<T> initializerBuilder
         ) {
-            if (hsComponentAssetParams.isEmpty()) {
+            if (registeredComponents.isEmpty()) {
                 return;
             }
             List<T> components = new ArrayList<>();
-            for (HSComponentAssetParams assetParams : hsComponentAssetParams) {
-                if (initializerBuilder.isEnable(assetParams)) {
-                    T component = HSComponent.create(assetParams);
-                    if (component != null) {
-                        components.add(component);
-                    } else {
-                        HSLogger.logError(TAG, String.format("HSComponent (%s) load fail!", assetParams.getName()));
-                    }
+            for (T component : registeredComponents) {
+                if (initializerBuilder.isComponentEnable(component)) {
+                    components.add(component);
+                } else {
+                    HSLogger.logError(TAG, String.format("HSComponent (%s) disabled on the server!", component.getName()));
                 }
             }
             final CountDownLatch componentsWaiter = new CountDownLatch(components.size());
@@ -349,69 +301,6 @@ class HSAppInstance {
 
         private <T> boolean isListNullOrEmpty(@Nullable List<T> list) {
             return list == null || list.isEmpty();
-        }
-
-        private abstract static class HSComponentInitializerBuilder<T extends HSComponent> {
-
-            @NonNull
-            protected final HSAppInstance app;
-            @NonNull
-            protected final HSContextProvider contextProvider;
-            @NonNull
-            protected final HSAppParams appParams;
-            @NonNull
-            private final JSONObject serverParams;
-
-            HSComponentInitializerBuilder(@NonNull HSAppInstance app,
-                                          @NonNull HSContextProvider contextProvider,
-                                          @NonNull HSAppParams appParams) {
-                this(app, contextProvider, appParams, null);
-            }
-
-            HSComponentInitializerBuilder(@NonNull HSAppInstance app,
-                                          @NonNull HSContextProvider contextProvider,
-                                          @NonNull HSAppParams appParams,
-                                          @Nullable JSONObject serverParams) {
-                this.app = app;
-                this.contextProvider = contextProvider;
-                this.appParams = appParams;
-                this.serverParams = serverParams == null ? new JSONObject() : serverParams;
-            }
-
-            HSComponentInitializer<T> build(@NonNull T component,
-                                            @NonNull HSComponentCallback callback) {
-                return new HSComponentInitializer<T>(app, contextProvider, component, appParams, callback) {
-
-                    @Override
-                    void doProcess(@NonNull HSComponentCallback callback) {
-                        process(component, getParams(component), callback);
-                    }
-                };
-            }
-
-            boolean isEnable(@NonNull HSComponentAssetParams assetParams) {
-                return serverParams.has(assetParams.getName());
-            }
-
-            abstract void process(@NonNull T component,
-                                  @NonNull HSComponentParams params,
-                                  @NonNull HSComponentCallback callback);
-
-            @NonNull
-            private HSComponentParams getParams(@NonNull T component) {
-                JSONObject extra = serverParams.optJSONObject(component.getName());
-                extra = extra == null ? new JSONObject() : extra;
-                configureComponent(component, extra);
-                return new HSComponentParamsImpl(appParams, extra);
-            }
-
-            private void configureComponent(@NonNull T component,
-                                            @NonNull JSONObject extra) {
-                if (extra.has("tracking")) {
-                    boolean tracking = extra.optBoolean("tracking", true);
-                    component.setEventsEnabled(tracking);
-                }
-            }
         }
     }
 
@@ -490,5 +379,108 @@ class HSAppInstance {
         }
 
         abstract void doProcess(@NonNull HSComponentCallback callback);
+    }
+
+    private abstract static class HSComponentInitializerBuilder<T extends HSComponent> {
+
+        @NonNull
+        protected final HSAppInstance app;
+        @NonNull
+        protected final HSContextProvider contextProvider;
+        @NonNull
+        protected final HSAppParams appParams;
+
+        HSComponentInitializerBuilder(@NonNull HSAppInstance app,
+                                      @NonNull HSContextProvider contextProvider,
+                                      @NonNull HSAppParams appParams) {
+            this.app = app;
+            this.contextProvider = contextProvider;
+            this.appParams = appParams;
+        }
+
+        boolean isComponentEnable(@NonNull T component) {
+            return true;
+        }
+
+        abstract HSComponentInitializer<T> build(@NonNull T component,
+                                                 @NonNull HSComponentCallback callback);
+
+        @NonNull
+        HSComponentParams getParams(@NonNull T component) {
+            return new HSComponentParamsImpl(appParams);
+        }
+    }
+
+    private static final class HSServiceInitializerBuilder extends HSComponentInitializerBuilder<HSService> {
+
+        @NonNull
+        private final JSONObject serverParams;
+
+        HSServiceInitializerBuilder(@NonNull HSAppInstance app,
+                                    @NonNull HSContextProvider contextProvider,
+                                    @NonNull HSAppParams appParams,
+                                    @Nullable JSONObject serverParams) {
+            super(app, contextProvider, appParams);
+            this.serverParams = serverParams == null ? new JSONObject() : serverParams;
+        }
+
+        @Override
+        boolean isComponentEnable(@NonNull HSService component) {
+            return serverParams.has(component.getName().toLowerCase());
+        }
+
+        @Override
+        HSComponentInitializer<HSService> build(@NonNull HSService component,
+                                                @NonNull HSComponentCallback callback) {
+            return new HSComponentInitializer<HSService>(app, contextProvider, component, appParams, callback) {
+                @Override
+                void doProcess(@NonNull HSComponentCallback callback) {
+                    component.start(contextProvider.getContext(),
+                                    getParams(component),
+                                    callback,
+                                    app.getConnectorDelegate());
+                }
+            };
+        }
+
+        @NonNull
+        @Override
+        HSComponentParams getParams(@NonNull HSService component) {
+            JSONObject extra = serverParams.optJSONObject(component.getName());
+            extra = extra == null ? new JSONObject() : extra;
+            configureComponent(component, extra);
+            return new HSComponentParamsImpl(appParams, extra);
+        }
+
+        private void configureComponent(@NonNull HSService component,
+                                        @NonNull JSONObject extra) {
+            if (extra.has("tracking")) {
+                boolean tracking = extra.optBoolean("tracking", true);
+                component.setEventsEnabled(tracking);
+            }
+        }
+    }
+
+    private static final class HSConnectorInitializerBuilder extends HSComponentInitializerBuilder<HSConnector> {
+
+        HSConnectorInitializerBuilder(@NonNull HSAppInstance app,
+                                      @NonNull HSContextProvider contextProvider,
+                                      @NonNull HSAppParams appParams) {
+            super(app, contextProvider, appParams);
+        }
+
+        @Override
+        HSComponentInitializer<HSConnector> build(@NonNull HSConnector component,
+                                                  @NonNull HSComponentCallback callback) {
+            return new HSComponentInitializer<HSConnector>(app, contextProvider, component, appParams, callback) {
+                @Override
+                void doProcess(@NonNull HSComponentCallback callback) {
+                    component.initialize(contextProvider.getActivity(),
+                                         getParams(component),
+                                         callback,
+                                         null);
+                }
+            };
+        }
     }
 }
