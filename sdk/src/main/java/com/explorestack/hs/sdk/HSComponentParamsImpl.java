@@ -20,6 +20,10 @@ class HSComponentParamsImpl implements HSComponentParams {
     @Nullable
     private final HSAdvertisingProfile adProfile;
 
+    HSComponentParamsImpl(@NonNull HSAppParams appParams) {
+        this(appParams, new JSONObject());
+    }
+
     HSComponentParamsImpl(@NonNull HSAppParams appParams,
                           @NonNull JSONObject serverExtra) {
         isDebugEnabled = appParams.isDebugEnabled();
