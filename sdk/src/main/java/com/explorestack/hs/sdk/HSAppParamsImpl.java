@@ -12,17 +12,25 @@ class HSAppParamsImpl implements HSAppParams {
     private final boolean isDebugEnabled;
     private final boolean isLoggingEnabled;
     private final long componentInitializeTimeout;
+    @NonNull
+    private final String trackId;
     @Nullable
     private final String appKey;
     @Nullable
     private final Integer adType;
+    @Nullable
+    private final HSAdvertisingProfile adProfile;
 
-    HSAppParamsImpl(@NonNull HSAppConfig appConfig) {
+    HSAppParamsImpl(@NonNull HSAppConfig appConfig,
+                    @NonNull HSAppInstance app,
+                    @Nullable HSAdvertisingProfile advertisingProfile) {
         isDebugEnabled = appConfig.isDebugEnabled();
         isLoggingEnabled = appConfig.isLoggingEnabled();
         componentInitializeTimeout = appConfig.getComponentInitializeTimeout();
         appKey = appConfig.getAppKey();
         adType = appConfig.getAdType();
+        trackId = app.getTrackId();
+        adProfile = advertisingProfile;
     }
 
     @Override
@@ -33,6 +41,12 @@ class HSAppParamsImpl implements HSAppParams {
     @Override
     public boolean isLoggingEnabled() {
         return isLoggingEnabled;
+    }
+
+    @NonNull
+    @Override
+    public String getTrackId() {
+        return trackId;
     }
 
     @Nullable
@@ -52,5 +66,11 @@ class HSAppParamsImpl implements HSAppParams {
         return componentInitializeTimeout > 0
                 ? componentInitializeTimeout
                 : DEF_COMPONENT_INITIALIZE_TIMEOUT;
+    }
+
+    @Nullable
+    @Override
+    public HSAdvertisingProfile getAdvertisingProfile() {
+        return adProfile;
     }
 }

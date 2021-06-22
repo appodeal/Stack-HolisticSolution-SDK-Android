@@ -11,6 +11,9 @@ public interface HSComponentParams {
 
     boolean isLoggingEnabled();
 
+    @NonNull
+    String getTrackId();
+
     @Nullable
     String getAppKey();
 
@@ -19,4 +22,7 @@ public interface HSComponentParams {
 
     @NonNull
     JSONObject getExtra();
+
+    @Nullable
+    HSAdvertisingProfile getAdvertisingProfile();
 }

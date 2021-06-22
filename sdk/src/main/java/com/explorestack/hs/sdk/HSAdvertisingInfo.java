@@ -18,9 +18,8 @@ import static com.explorestack.hs.sdk.HSCoreUtils.invokeMethodByName;
 class HSAdvertisingInfo {
 
     private static final String TAG = "HSAdvertisingInfo";
-    private static final String DEFAULT_ADVERTISING_ID = "00000000-0000-0000-0000-000000000000";
 
-    private static final List<AdvertisingProfile> supportedAdvertisingProfiles = new ArrayList<>();
+    private static final List<HSAdvertisingProfile> supportedAdvertisingProfiles = new ArrayList<>();
 
     static {
         supportedAdvertisingProfiles.add(new AndroidAdvertisingProfile());
@@ -29,8 +28,8 @@ class HSAdvertisingInfo {
     }
 
     @Nullable
-    static AdvertisingProfile updateInfo(@NonNull Context context) {
-        for (AdvertisingProfile profile : supportedAdvertisingProfiles) {
+    static HSAdvertisingProfile updateInfo(@NonNull Context context) {
+        for (HSAdvertisingProfile profile : supportedAdvertisingProfiles) {
             HSLogger.logInfo(TAG, "Trying: " + profile.getName());
             try {
                 if (profile.isEnabled(context)) {
@@ -52,7 +51,7 @@ class HSAdvertisingInfo {
         return null;
     }
 
-    private static final class AndroidAdvertisingProfile extends AdvertisingProfile {
+    private static final class AndroidAdvertisingProfile extends HSAdvertisingProfile {
 
         private static final String ADVERTISING_CLIENT_CLASS = "com.google.android.gms.ads.identifier.AdvertisingIdClient";
 
@@ -66,9 +65,9 @@ class HSAdvertisingInfo {
         void extractParams(Context context) throws Throwable {
             Object advertisingIdInfoObject =
                     invokeMethodByName(advertisingClientClass,
-                            advertisingClientClass,
-                            "getAdvertisingIdInfo",
-                            new Pair<Class<?>, Object>(Context.class, context));
+                                       advertisingClientClass,
+                                       "getAdvertisingIdInfo",
+                                       new Pair<Class<?>, Object>(Context.class, context));
             if (advertisingIdInfoObject != null) {
                 id = (String) invokeMethodByName(advertisingIdInfoObject, "getId");
                 limitAdTrackingEnabled = (boolean) invokeMethodByName(advertisingIdInfoObject,
@@ -83,7 +82,7 @@ class HSAdvertisingInfo {
         }
     }
 
-    private static final class AmazonAdvertisingProfile extends AdvertisingProfile {
+    private static final class AmazonAdvertisingProfile extends HSAdvertisingProfile {
 
         AmazonAdvertisingProfile() {
             super("Amazon");
@@ -102,7 +101,7 @@ class HSAdvertisingInfo {
         }
     }
 
-    private static final class HMSAdvertisingProfile extends AdvertisingProfile {
+    private static final class HMSAdvertisingProfile extends HSAdvertisingProfile {
 
         private static final String ADVERTISING_CLIENT_CLASS = "com.huawei.hms.ads.identifier.AdvertisingIdClient";
         private static final String ADVERTISING_CLIENT_INFO_CLASS = ADVERTISING_CLIENT_CLASS + "$Info";
@@ -140,43 +139,4 @@ class HSAdvertisingInfo {
         }
     }
 
-    public abstract static class AdvertisingProfile {
-
-        @NonNull
-        private final String name;
-
-        @Nullable
-        String id;
-        boolean limitAdTrackingEnabled;
-
-        public AdvertisingProfile(@NonNull String name) {
-            this.name = name;
-        }
-
-        @NonNull
-        public String getName() {
-            return name;
-        }
-
-        @Nullable
-        public String getId(@NonNull Context context) {
-            if (TextUtils.isEmpty(id)) {
-                String uuid = HSCoreUtils.getAdvertisingUUID(context);
-                if (uuid != null) {
-                    return uuid;
-                }
-                return DEFAULT_ADVERTISING_ID;
-            } else {
-                return id;
-            }
-        }
-
-        public boolean isLimitAdTrackingEnabled() {
-            return limitAdTrackingEnabled;
-        }
-
-        abstract void extractParams(Context context) throws Throwable;
-
-        abstract boolean isEnabled(@NonNull Context context) throws Throwable;
-    }
 }

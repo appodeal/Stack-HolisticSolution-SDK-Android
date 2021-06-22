@@ -21,6 +21,7 @@ import com.adjust.sdk.purchase.ADJPLogLevel;
 import com.adjust.sdk.purchase.ADJPVerificationInfo;
 import com.adjust.sdk.purchase.AdjustPurchase;
 import com.adjust.sdk.purchase.OnADJPVerificationFinished;
+import com.explorestack.hs.sdk.HSAdvertisingProfile;
 import com.explorestack.hs.sdk.HSComponentCallback;
 import com.explorestack.hs.sdk.HSComponentParams;
 import com.explorestack.hs.sdk.HSConnectorCallback;
@@ -82,6 +83,11 @@ public class HSAdjustService extends HSService {
         AdjustConfig adjustConfig = new AdjustConfig(context, appToken, environment);
         adjustConfig.setLogLevel(params.isLoggingEnabled() ? LogLevel.VERBOSE : LogLevel.INFO);
         adjustConfig.setOnAttributionChangedListener(new AttributionChangedListener(connectorCallback));
+
+        HSAdvertisingProfile advertisingProfile = params.getAdvertisingProfile();
+        if (advertisingProfile != null && advertisingProfile.isZero()) {
+            adjustConfig.setExternalDeviceId(advertisingProfile.getId(context));
+        }
         if (context instanceof Application) {
             ((Application) context).registerActivityLifecycleCallbacks(new AdjustLifecycleCallbacks());
         }

@@ -46,6 +46,7 @@ public class HSAppodealConnector extends HSConnector<Consent> {
             return;
         }
         Appodeal.setLogLevel(params.isLoggingEnabled() ? Log.LogLevel.verbose : Log.LogLevel.none);
+        Appodeal.setExtraData("track_id", params.getTrackId());
         assert appKey != null;
         if (regulator == null || regulator.getConsent() == null) {
             Appodeal.initialize(activity, appKey, adType);

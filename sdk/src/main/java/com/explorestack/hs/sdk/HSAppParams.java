@@ -1,5 +1,6 @@
 package com.explorestack.hs.sdk;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 public interface HSAppParams {
@@ -10,9 +11,15 @@ public interface HSAppParams {
 
     boolean isLoggingEnabled();
 
+    @NonNull
+    String getTrackId();
+
     @Nullable
     String getAppKey();
 
     @Nullable
     Integer getAdType();
+
+    @Nullable
+    HSAdvertisingProfile getAdvertisingProfile();
 }
