@@ -17,7 +17,7 @@ android {
 
 dependencies {
     //Appsflyer SDK
-    remoteDependency "com.appsflyer:af-android-sdk:$sdkVersion"
+    implementation "com.appsflyer:af-android-sdk:$sdkVersion"
     //Play Install Referrer Library for AppsFlyer SDK
-    remoteDependency 'com.android.installreferrer:installreferrer:1.1.2'
+    implementation 'com.android.installreferrer:installreferrer:1.1.2'
 }

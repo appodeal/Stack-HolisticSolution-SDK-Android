@@ -23,5 +23,5 @@ repositories {
 
 dependencies {
     //Appodeal SDK
-    remoteDependency "com.appodeal.ads:sdk:$sdkVersion"
+    implementation "com.appodeal.ads:sdk:$sdkVersion"
 }

@@ -23,5 +23,5 @@ repositories {
 
 dependencies {
     //Explorestack Consent SDK
-    remoteDependency "com.explorestack:consent:$sdkVersion"
+    implementation "com.explorestack:consent:$sdkVersion"
 }
