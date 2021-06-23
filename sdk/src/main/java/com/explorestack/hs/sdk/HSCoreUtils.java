@@ -36,8 +36,7 @@ class HSCoreUtils {
 
     private static final String TAG = "HSCoreUtils";
     private static final String UUID_ID = "uuid";
-    // TODO: 04.06.2021
-    private static final String SHARED_PREFERENCES_NAME = "ad_core_preferences";
+    private static final String SHARED_PREFERENCES_NAME = "appodeal";
 
     @NonNull
     private static final Handler backgroundHandler;
