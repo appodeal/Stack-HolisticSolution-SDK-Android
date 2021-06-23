@@ -20,7 +20,7 @@ class HSComponentRegistry {
     private static List<HSConnector> hsConnectors = new ArrayList<>();
 
     @NonNull
-    static List<HSService> registerServices(@NonNull Context context) {
+    static List<HSService> registerServices(@NonNull HSAppInstance app, @NonNull Context context) {
         if (hsServices.isEmpty()) {
             hsServices = create(findHSServicesAssetParams(context));
         }
@@ -32,7 +32,7 @@ class HSComponentRegistry {
     }
 
     @NonNull
-    static List<HSRegulator> registerRegulators(@NonNull Context context) {
+    static List<HSRegulator> registerRegulators(@NonNull HSAppInstance app, @NonNull Context context) {
         if (hsRegulators.isEmpty()) {
             hsRegulators = create(findHSRegulatorsAssetParams(context));
         }
@@ -40,9 +40,13 @@ class HSComponentRegistry {
     }
 
     @NonNull
-    static List<HSConnector> registerConnectors(@NonNull Context context) {
+    static List<HSConnector> registerConnectors(@NonNull HSAppInstance app, @NonNull Context context) {
         if (hsConnectors.isEmpty()) {
             hsConnectors = create(findHSConnectorsAssetParams(context));
+            for (HSConnector connector : hsConnectors) {
+                app.getConnectorDelegate().addCallback(connector,
+                                                       connector.createConnectorCallback(context));
+            }
         }
         return hsConnectors;
     }

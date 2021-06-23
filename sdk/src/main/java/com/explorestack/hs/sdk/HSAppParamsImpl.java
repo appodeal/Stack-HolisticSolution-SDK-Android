@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit;
 
 class HSAppParamsImpl implements HSAppParams {
 
-    private static final long DEF_COMPONENT_INITIALIZE_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
+    private static final long DEF_COMPONENT_INITIALIZE_TIMEOUT = TimeUnit.SECONDS.toMillis(60);
 
     private final boolean isDebugEnabled;
     private final boolean isLoggingEnabled;

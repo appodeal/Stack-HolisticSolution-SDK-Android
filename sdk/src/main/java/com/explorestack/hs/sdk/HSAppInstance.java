@@ -201,9 +201,9 @@ class HSAppInstance {
         @Override
         public void run() {
             Context targetContext = contextProvider.getApplicationContext();
-            final List<HSService> services = HSComponentRegistry.registerServices(targetContext);
-            final List<HSRegulator> regulators = HSComponentRegistry.registerRegulators(targetContext);
-            final List<HSConnector> connectors = HSComponentRegistry.registerConnectors(targetContext);
+            final List<HSService> services = HSComponentRegistry.registerServices(app, targetContext);
+            final List<HSRegulator> regulators = HSComponentRegistry.registerRegulators(app, targetContext);
+            final List<HSConnector> connectors = HSComponentRegistry.registerConnectors(app, targetContext);
 
             if (isListNullOrEmpty(services)) {
                 addError(HSError.NoServices);
@@ -379,8 +379,6 @@ class HSAppInstance {
             }
             app.getLifecycleDelegate().addCallback(
                     component, component.getLifecycleCallback(targetContext));
-            app.getConnectorDelegate().addCallback(
-                    component, component.createConnectorCallback(targetContext));
             app.getInAppPurchaseValidateDispatcher().addHandler(
                     component, component.createIAPValidateHandler(targetContext));
             doProcess(componentCallback);
