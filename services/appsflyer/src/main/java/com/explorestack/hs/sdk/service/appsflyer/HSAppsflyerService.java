@@ -35,7 +35,7 @@ public class HSAppsflyerService extends HSService {
     private static AppsFlyerInAppPurchaseValidatorListener externalPurchaseValidatorListener;
 
     public HSAppsflyerService() {
-        super("appsflyer", AppsFlyerLib.getInstance().getSdkVersion());
+        super("Appsflyer", AppsFlyerLib.getInstance().getSdkVersion());
     }
 
     public static void setAppsFlyerConversionListener(@Nullable AppsFlyerConversionListener listener) {
