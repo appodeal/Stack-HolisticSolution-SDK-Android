@@ -10,7 +10,7 @@ import com.explorestack.hs.sdk.HSComponentCallback
 import com.explorestack.hs.sdk.HSComponentParams
 import com.explorestack.hs.sdk.HSRegulator
 
-class HSStackRegulator : HSRegulator<Consent>("Stack Consent Manager", null) {
+class HSStackRegulator : HSRegulator<Consent>("Stack Consent Manager", "null" ,"") {
 
     private var _consentManager: ConsentManager? = null
     private val consentManager get() = _consentManager!!

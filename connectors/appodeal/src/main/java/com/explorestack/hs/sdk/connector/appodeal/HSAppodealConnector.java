@@ -23,7 +23,7 @@ import java.util.Map;
 public class HSAppodealConnector extends HSConnector<Consent> {
 
     public HSAppodealConnector() {
-        super("Appodeal", Appodeal.getVersion());
+        super("Appodeal", Appodeal.getVersion(), BuildConfig.COMPONENT_VERSION);
     }
 
     @Override

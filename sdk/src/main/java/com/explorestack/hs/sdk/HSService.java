@@ -3,12 +3,13 @@ package com.explorestack.hs.sdk;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 public abstract class HSService extends HSComponent {
 
-    public HSService(@NonNull String name, @Nullable String version) {
-        super(name, version);
+    public HSService(@NonNull String name,
+                     @NonNull String version,
+                     @NonNull String adapterVersion) {
+        super(name, version, adapterVersion);
     }
 
     public abstract void start(@NonNull Context context,

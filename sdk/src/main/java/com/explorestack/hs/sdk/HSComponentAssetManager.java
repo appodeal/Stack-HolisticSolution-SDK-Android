@@ -22,7 +22,6 @@ class HSComponentAssetManager {
     private static final String KEY_CLASSPATH = "classpath";
     private static final String KEY_NAME = "name";
     private static final String KEY_SDK = "sdk";
-    private static final String KEY_VERSION = "version";
 
     @NonNull
     static List<HSComponentAssetParams> findHSServicesAssetParams(@NonNull Context context) {
@@ -84,16 +83,14 @@ class HSComponentAssetManager {
             JSONObject networkAssetConfig = new JSONObject(fileContent);
             String name = networkAssetConfig.optString(KEY_NAME);
             String sdk = networkAssetConfig.optString(KEY_SDK);
-            String version = networkAssetConfig.optString(KEY_VERSION);
             String classpath = networkAssetConfig.optString(KEY_CLASSPATH);
             if (TextUtils.isEmpty(name)
                     || TextUtils.isEmpty(sdk)
-                    || TextUtils.isEmpty(version)
                     || TextUtils.isEmpty(classpath)) {
                 return null;
             }
 
-            return new HSComponentAssetParams(name, sdk, version, classpath);
+            return new HSComponentAssetParams(name, sdk, classpath);
         } catch (Exception e) {
             return null;
         }

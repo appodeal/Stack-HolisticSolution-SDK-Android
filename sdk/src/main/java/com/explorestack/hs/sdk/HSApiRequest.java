@@ -261,8 +261,8 @@ class HSApiRequest<RequestDataType, ResponseDataType> extends HSNetworkRequest<R
             JSONObject servicesJson = new JSONObject();
             for (HSComponent component : HSComponentRegistry.getServices()) {
                 JSONObject componentJson = new JSONObject();
-//                componentJson.put("sdk", component.getSdk());
-                componentJson.put("ver", component.getVersion());
+                componentJson.put("sdk", component.getVersion());
+                componentJson.put("ver", component.getAdapterVersion());
                 servicesJson.put(component.getName(), componentJson);
             }
             target.put("services", servicesJson);

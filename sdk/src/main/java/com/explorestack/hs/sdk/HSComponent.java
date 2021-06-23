@@ -10,14 +10,19 @@ public class HSComponent {
 
     @NonNull
     private final String name;
-    @Nullable
+    @NonNull
     private final String version;
+    @NonNull
+    private final String adapterVersion;
 
     private boolean isEventsEnabled = true;
 
-    public HSComponent(@NonNull String name, @Nullable String version) {
+    public HSComponent(@NonNull String name,
+                       @NonNull String version,
+                       @NonNull String adapterVersion) {
         this.name = name;
         this.version = version;
+        this.adapterVersion = adapterVersion;
     }
 
     @NonNull
@@ -25,9 +30,14 @@ public class HSComponent {
         return name;
     }
 
-    @Nullable
+    @NonNull
     public String getVersion() {
         return version;
+    }
+
+    @NonNull
+    public String getAdapterVersion() {
+        return adapterVersion;
     }
 
     public void setEventsEnabled(boolean enabled) {
