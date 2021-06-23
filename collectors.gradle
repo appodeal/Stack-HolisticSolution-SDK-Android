@@ -24,20 +24,20 @@ private List<Project> collectProjects(String rootProject,
     return resultProjects
 }
 
-String obtainHSComponentAarVersion(Project hsComponentProject) {
-    if (hsComponentProject.name == project(':sdk').name
-            || hsComponentProject.name == project(':sdk-full').name) {
-        return "${obtainVersion(hsComponentProject)}"
+String obtainHSComponentAarVersion(Project targetProject) {
+    if (targetProject.name == project(':sdk').name
+            || targetProject.name == project(':sdk-full').name) {
+        return "${obtainVersion(targetProject)}"
     }
-    return obtainVersion(':sdk') + "." + obtainVersion(hsComponentProject)
+    return obtainVersion(':sdk') + "." + obtainVersion(targetProject)
 }
 
 String obtainVersion(String projectName) {
     return obtainVersion(project(projectName))
 }
 
-static String obtainVersion(Project project) {
-    return project.android.defaultConfig.versionName
+static String obtainVersion(Project targetProject) {
+    return targetProject.android.defaultConfig.versionName
 }
 
 ext {
