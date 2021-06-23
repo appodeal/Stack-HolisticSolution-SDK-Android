@@ -61,16 +61,4 @@ public class HSComponent {
     protected HSError buildError(@NonNull String message) {
         return HSError.forComponent(this, message);
     }
-
-    @Nullable
-    public static <T extends HSComponent> T create(HSComponentAssetParams assetParams) {
-        try {
-            return (T) Class.forName(assetParams.getClasspath())
-                    .getConstructor()
-                    .newInstance();
-        } catch (Throwable ignored) {
-            // ignore
-        }
-        return null;
-    }
 }
