@@ -8,8 +8,10 @@ import androidx.annotation.Nullable;
 
 public abstract class HSConnector<T> extends HSComponent {
 
-    public HSConnector(@NonNull String name, @Nullable String version) {
-        super(name, version);
+    public HSConnector(@NonNull String name,
+                       @NonNull String version,
+                       @NonNull String adapterVersion) {
+        super(name, version, adapterVersion);
     }
 
     public abstract void initialize(@Nullable Activity activity,

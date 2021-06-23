@@ -7,8 +7,10 @@ import androidx.annotation.Nullable;
 
 public abstract class HSRegulator<T> extends HSComponent {
 
-    public HSRegulator(@NonNull String name, @Nullable String version) {
-        super(name, version);
+    public HSRegulator(@NonNull String name,
+                       @NonNull String version,
+                       @NonNull String adapterVersion) {
+        super(name, version, adapterVersion);
     }
 
     public abstract void start(@NonNull Context context,

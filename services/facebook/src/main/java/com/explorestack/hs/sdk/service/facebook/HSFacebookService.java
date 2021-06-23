@@ -29,7 +29,7 @@ public class HSFacebookService extends HSService {
     private static AppEventsLogger eventsLogger;
 
     public HSFacebookService() {
-        super("Facebook", FacebookSdk.getSdkVersion());
+        super("Facebook", FacebookSdk.getSdkVersion(), BuildConfig.COMPONENT_VERSION);
     }
 
     public static void setEventsLogger(@Nullable AppEventsLogger logger) {

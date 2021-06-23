@@ -50,7 +50,7 @@ public class HSAdjustService extends HSService {
     private Map<String, String> eventTokens = null;
 
     public HSAdjustService() {
-        super("Adjust", Adjust.getSdkVersion());
+        super("Adjust", Adjust.getSdkVersion(), BuildConfig.COMPONENT_VERSION);
     }
 
     public static void setAttributionChangedListener(@Nullable OnAttributionChangedListener listener) {

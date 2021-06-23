@@ -9,6 +9,8 @@ android {
     defaultConfig {
         versionCode 1
         versionName "${versionCode}"
+        buildConfigField "String", "COMPONENT_SDK_VERSION", "\"${sdkVersion}\""
+        buildConfigField "String", "COMPONENT_VERSION", "\"${obtainHSComponentAarVersion(project)}\""
         consumerProguardFiles "consumer-rules.pro"
     }
 }
