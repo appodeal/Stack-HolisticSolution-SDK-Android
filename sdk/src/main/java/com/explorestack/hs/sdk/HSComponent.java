@@ -49,11 +49,6 @@ public class HSComponent {
     }
 
     @Nullable
-    public HSConnectorCallback createConnectorCallback(@NonNull Context context) {
-        return null;
-    }
-
-    @Nullable
     public Application.ActivityLifecycleCallbacks getLifecycleCallback(@NonNull Context context) {
         return null;
     }
