@@ -3,17 +3,9 @@ import groovy.json.JsonOutput
 apply from: "${rootDir}/default.gradle"
 apply from: "${rootDir}/builder.gradle"
 
-configurations {
-    remoteDependency
-}
-
-project.configurations
-        .getByName('api')
-        .extendsFrom(configurations.remoteDependency)
-
 dependencies {
-    remoteDependency "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    remoteDependency 'androidx.annotation:annotation:1.0.0'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation 'androidx.annotation:annotation:1.0.0'
 }
 
 task prepareForPublishing(dependsOn: assemble) {
@@ -22,7 +14,7 @@ task prepareForPublishing(dependsOn: assemble) {
         publishOutputDir.mkdirs()
 
         def remoteDependencies = []
-        remoteDependencies.addAll(project.configurations.remoteDependency.dependencies.asList())
+        remoteDependencies.addAll(project.configurations.implementation.dependencies.asList())
 
         def dependencies = []
         remoteDependencies.forEach { dep ->

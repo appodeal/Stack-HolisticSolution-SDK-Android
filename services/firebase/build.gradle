@@ -17,6 +17,6 @@ android {
 
 dependencies {
     //Firebase Remote Config SDK
-    remoteDependency 'com.google.firebase:firebase-config:20.0.0'
-    remoteDependency "com.google.firebase:firebase-analytics:$sdkVersion"
+    implementation 'com.google.firebase:firebase-config:20.0.0'
+    implementation "com.google.firebase:firebase-analytics:$sdkVersion"
 }
