@@ -23,11 +23,11 @@ repositories {
 
 dependencies {
     //Adjust SDK
-    implementation "com.adjust.sdk:adjust-android:$sdkVersion"
+    remoteDependency "com.adjust.sdk:adjust-android:$sdkVersion"
     //Adjust Purchase SDK
-    implementation 'com.explorestack.adjust:sdk-purchase:1.1.2'
+    remoteDependency 'com.explorestack.adjust:sdk-purchase:1.1.2'
     //Play Install Referrer Library for Adjust SDK
-    implementation 'com.android.installreferrer:installreferrer:1.1.2'
+    remoteDependency 'com.android.installreferrer:installreferrer:1.1.2'
     //Play Services Ads Identifier Library for Adjust SDK
-    implementation 'com.google.android.gms:play-services-ads-identifier:17.0.0'
+    remoteDependency 'com.google.android.gms:play-services-ads-identifier:17.0.0'
 }

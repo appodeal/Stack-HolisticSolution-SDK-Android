@@ -68,7 +68,7 @@ afterEvaluate {
                         dependencyNode.appendNode('artifactId', core.ext.publishArtifactId)
                         dependencyNode.appendNode('version', obtainHSComponentAarVersion(core))
                     }
-                    project.configurations.implementation.getDependencies().each { dependency ->
+                    project.configurations.remoteDependency.getDependencies().each { dependency ->
                         if (dependency instanceof ExternalModuleDependency) {
                             println("implementation dependency: " + dependency.properties)
 

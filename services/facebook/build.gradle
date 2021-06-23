@@ -17,5 +17,5 @@ android {
 
 dependencies {
     //Facebook Core SDK
-    implementation "com.facebook.android:facebook-core:$sdkVersion"
+    remoteDependency "com.facebook.android:facebook-core:$sdkVersion"
 }
