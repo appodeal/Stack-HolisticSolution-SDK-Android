@@ -2,6 +2,6 @@ apply from: "${rootDir}/default.gradle"
 apply from: "${rootDir}/builder.gradle"
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation 'androidx.annotation:annotation:1.0.0'
+    remoteDependency "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    remoteDependency 'androidx.annotation:annotation:1.0.0'
 }

@@ -17,3 +17,11 @@ android {
         }
     }
 }
+
+configurations {
+    remoteDependency
+}
+
+project.configurations
+        .getByName('api')
+        .extendsFrom(configurations.remoteDependency)
