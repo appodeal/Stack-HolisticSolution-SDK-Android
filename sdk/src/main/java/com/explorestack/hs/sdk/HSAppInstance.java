@@ -201,12 +201,15 @@ class HSAppInstance {
         @Override
         public void run() {
             Context targetContext = contextProvider.getApplicationContext();
-            HSComponentAssetManager.findHSComponents(targetContext);
-            final List<HSService> services = new ArrayList<>();
-            final List<HSConnector> connectors = new ArrayList<>();
+            final List<HSService> services = HSComponentRegistry.registerServices(targetContext);
+            final List<HSRegulator> regulators = HSComponentRegistry.registerRegulators(targetContext);
+            final List<HSConnector> connectors = HSComponentRegistry.registerConnectors(targetContext);
 
             if (isListNullOrEmpty(services)) {
                 addError(HSError.NoServices);
+            }
+            if (isListNullOrEmpty(regulators)) {
+                addError(HSError.NoRegulator);
             }
             if (isListNullOrEmpty(connectors)) {
                 addError(HSError.NoConnectors);
@@ -214,6 +217,11 @@ class HSAppInstance {
             final HSAdvertisingProfile advertisingProfile = HSAdvertisingInfo.updateInfo(targetContext);
             final HSAppParamsImpl appParams = new HSAppParamsImpl(appConfig, app, advertisingProfile);
 
+            // Regulators initialization
+            initializeComponents(
+                    regulators,
+                    new HSRegulatorInitializerBuilder(app, contextProvider, appParams)
+            );
             HSNetworkRequest.Callback<JSONObject, HSError> callback
                     = new HSNetworkRequest.Callback<JSONObject, HSError>() {
                 @Override
@@ -479,6 +487,28 @@ class HSAppInstance {
                                          getParams(component),
                                          callback,
                                          null);
+                }
+            };
+        }
+    }
+
+    private static final class HSRegulatorInitializerBuilder extends HSComponentInitializerBuilder<HSRegulator> {
+
+        HSRegulatorInitializerBuilder(@NonNull HSAppInstance app,
+                                      @NonNull HSContextProvider contextProvider,
+                                      @NonNull HSAppParams appParams) {
+            super(app, contextProvider, appParams);
+        }
+
+        @Override
+        HSComponentInitializer<HSRegulator> build(@NonNull HSRegulator component,
+                                                  @NonNull HSComponentCallback callback) {
+            return new HSComponentInitializer<HSRegulator>(app, contextProvider, component, appParams, callback) {
+                @Override
+                void doProcess(@NonNull HSComponentCallback callback) {
+                    component.start(contextProvider.getActivity(),
+                                    getParams(component),
+                                    callback);
                 }
             };
         }

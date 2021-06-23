@@ -259,11 +259,11 @@ class HSApiRequest<RequestDataType, ResponseDataType> extends HSNetworkRequest<R
                          @NonNull HSAppParams appParams,
                          @NonNull JSONObject target) throws Exception {
             JSONObject servicesJson = new JSONObject();
-            for (HSComponentAssetParams assetParams : HSComponentAssetManager.getServices()) {
+            for (HSComponent component : HSComponentRegistry.getServices()) {
                 JSONObject componentJson = new JSONObject();
-                componentJson.put("sdk", assetParams.getSdk());
-                componentJson.put("ver", assetParams.getVersion());
-                servicesJson.put(assetParams.getName(), componentJson);
+                componentJson.put("sdk", component.getSdk());
+                componentJson.put("ver", component.getVersion());
+                servicesJson.put(component.getName(), componentJson);
             }
             target.put("services", servicesJson);
         }

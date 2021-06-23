@@ -24,41 +24,29 @@ class HSComponentAssetManager {
     private static final String KEY_SDK = "sdk";
     private static final String KEY_VERSION = "version";
 
-    private static final List<HSComponentAssetParams> HSRegulatorsAssetParams = new ArrayList<>();
-    private static final List<HSComponentAssetParams> HSConnectorsAssetParams = new ArrayList<>();
-    private static final List<HSComponentAssetParams> HSServicesAssetParams = new ArrayList<>();
-
-    static List<HSComponentAssetParams> getRegulators() {
-        return HSRegulatorsAssetParams;
+    @NonNull
+    static List<HSComponentAssetParams> findHSServicesAssetParams(@NonNull Context context) {
+        return findHSComponents(context, HS_SERVICES_ASSET_PATH);
     }
 
-    static List<HSComponentAssetParams> getConnectors() {
-        return HSConnectorsAssetParams;
+    @NonNull
+    static List<HSComponentAssetParams> findHSRegulatorsAssetParams(@NonNull Context context) {
+        return findHSComponents(context, HS_REGULATORS_ASSET_PATH);
     }
 
-    static List<HSComponentAssetParams> getServices() {
-        return HSServicesAssetParams;
+    @NonNull
+    static List<HSComponentAssetParams> findHSConnectorsAssetParams(@NonNull Context context) {
+        return findHSComponents(context, HS_CONNECTORS_ASSET_PATH);
     }
 
-    static void findHSComponents(@NonNull Context context) {
-        if (HSRegulatorsAssetParams.isEmpty()) {
-            findHSComponents(context, HSRegulatorsAssetParams, HS_REGULATORS_ASSET_PATH);
-        }
-        if (HSConnectorsAssetParams.isEmpty()) {
-            findHSComponents(context, HSConnectorsAssetParams, HS_CONNECTORS_ASSET_PATH);
-        }
-        if (HSServicesAssetParams.isEmpty()) {
-            findHSComponents(context, HSServicesAssetParams, HS_SERVICES_ASSET_PATH);
-        }
-    }
-
-    private static void findHSComponents(@NonNull Context context,
-                                         @NonNull List<HSComponentAssetParams> assetParamsMap,
-                                         @NonNull String assetPath) {
+    @NonNull
+    private static List<HSComponentAssetParams> findHSComponents(@NonNull Context context,
+                                                                 @NonNull String assetPath) {
+        List<HSComponentAssetParams> assetParamsMap = new ArrayList<>();
         try {
             AssetManager assetManager = context.getAssets();
             if (assetManager == null) {
-                return;
+                return assetParamsMap;
             }
             for (String fileName : assetManager.list(assetPath)) {
                 String filePath = String.format("%s/%s", assetPath, fileName);
@@ -67,6 +55,7 @@ class HSComponentAssetManager {
         } catch (Throwable t) {
             HSLogger.logError(TAG, t);
         }
+        return assetParamsMap;
     }
 
     private static void findHSComponent(@NonNull AssetManager assetManager,
