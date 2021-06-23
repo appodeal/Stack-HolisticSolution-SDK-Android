@@ -26,21 +26,47 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 public class HSFirebaseService extends HSService {
 
     @Nullable
     private static FirebaseAnalytics firebaseAnalytics;
+    @Nullable
+    private static String cachedVersion;
 
     @Nullable
     private List<String> configKeys = null;
 
     public HSFirebaseService() {
-        super("Firebase", BuildConfig.COMPONENT_SDK_VERSION, BuildConfig.COMPONENT_VERSION);
+        super("Firebase", getFirebaseVersion(), BuildConfig.COMPONENT_VERSION);
     }
 
     public static void setFirebaseAnalytics(@Nullable FirebaseAnalytics analytics) {
         firebaseAnalytics = analytics;
+    }
+
+    @NonNull
+    private static String getFirebaseVersion() {
+        if (cachedVersion == null) {
+            try {
+                Properties properties = new Properties();
+                ClassLoader classLoader = HSFirebaseService.class.getClassLoader();
+                if (classLoader != null) {
+                    properties.load(classLoader.getResourceAsStream("firebase-analytics.properties"));
+                    cachedVersion = properties.getProperty("firebase-analytics_client");
+                    if (cachedVersion == null) {
+                        cachedVersion = properties.getProperty("version");
+                    }
+                }
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        }
+        if (cachedVersion == null) {
+            cachedVersion = BuildConfig.COMPONENT_SDK_VERSION;
+        }
+        return cachedVersion;
     }
 
     @Override
