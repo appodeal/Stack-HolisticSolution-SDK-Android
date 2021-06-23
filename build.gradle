@@ -28,16 +28,16 @@ task clean(type: Delete) {
 
 task publishAllToArtifactory {
     List<String> dependsTasks = []
-//    dependsTasks.add(':sdk:uploadAarToArtifactory')
-//    collectRegulators().forEach {
-//        dependsTasks.add(":regulators:${it.name}:uploadAarToArtifactory")
-//    }
-//    collectServices().forEach {
-//        dependsTasks.add(":services:${it.name}:uploadAarToArtifactory")
-//    }
-//    collectConnectors().collect {
-//        dependsTasks.add(":connectors:${it.name}:uploadAarToArtifactory")
-//    }
+    dependsTasks.add(':sdk:uploadAarToArtifactory')
+    collectRegulators().forEach {
+        dependsTasks.add(":regulators:${it.name}:uploadAarToArtifactory")
+    }
+    collectServices().forEach {
+        dependsTasks.add(":services:${it.name}:uploadAarToArtifactory")
+    }
+    collectConnectors().collect {
+        dependsTasks.add(":connectors:${it.name}:uploadAarToArtifactory")
+    }
     dependsTasks.add(':sdk-full:uploadAarToArtifactory')
     finalizedBy(dependsTasks.toArray())
 }
