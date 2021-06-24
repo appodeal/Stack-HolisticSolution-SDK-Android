@@ -83,7 +83,7 @@ public class HSAdjustService extends HSService {
         }
         AdjustConfig adjustConfig = new AdjustConfig(context, appToken, environment);
         adjustConfig.setLogLevel(params.isLoggingEnabled() ? LogLevel.VERBOSE : LogLevel.INFO);
-        adjustConfig.setOnAttributionChangedListener(new AttributionChangedListener(connectorCallback));
+        adjustConfig.setOnAttributionChangedListener(new AttributionChangedListener(callback, connectorCallback));
 
         HSAdvertisingProfile advertisingProfile = params.getAdvertisingProfile();
         if (advertisingProfile != null && advertisingProfile.isZero()) {
@@ -99,12 +99,17 @@ public class HSAdjustService extends HSService {
         adjustPurchaseConfig.setLogLevel(params.isLoggingEnabled() ? ADJPLogLevel.VERBOSE : ADJPLogLevel.INFO);
         AdjustPurchase.init(adjustPurchaseConfig);
 
-        // TODO: 15.05.2021 check attribution_id param in Appdoeal requests
         adId = Adjust.getAdid();
+        completeInitialization(callback, connectorCallback, adId);
+    }
+
+    private static void completeInitialization(@NonNull HSComponentCallback callback,
+                                               @NonNull HSConnectorCallback connectorCallback,
+                                               @Nullable String adId) {
         if (adId != null) {
             connectorCallback.setAttributionId("attribution_id", adId);
+            callback.onFinished();
         }
-        callback.onFinished();
     }
 
     @Nullable
@@ -123,8 +128,12 @@ public class HSAdjustService extends HSService {
 
         @NonNull
         private final HSConnectorCallback connectorCallback;
+        @NonNull
+        private final HSComponentCallback callback;
 
-        public AttributionChangedListener(@NonNull HSConnectorCallback connectorCallback) {
+        public AttributionChangedListener(@NonNull HSComponentCallback callback,
+                                          @NonNull HSConnectorCallback connectorCallback) {
+            this.callback = callback;
             this.connectorCallback = connectorCallback;
         }
 
@@ -137,7 +146,7 @@ public class HSAdjustService extends HSService {
                 } else {
                     adId = attribution.adid;
                 }
-                connectorCallback.setAttributionId("attribution_id", adId);
+                completeInitialization(callback, connectorCallback, adId);
             }
             if (attribution != null) {
                 connectorCallback.setConversionData(convertAttributionToMap(attribution));
