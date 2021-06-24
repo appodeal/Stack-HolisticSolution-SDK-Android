@@ -45,7 +45,8 @@ public class HSAdjustService extends HSService {
     private static OnAttributionChangedListener externalAttributionListener;
     @Nullable
     private static OnADJPVerificationFinished externalPurchaseValidatorListener;
-
+    @Nullable
+    private static String adId;
     @Nullable
     private Map<String, String> eventTokens = null;
 
@@ -99,7 +100,10 @@ public class HSAdjustService extends HSService {
         AdjustPurchase.init(adjustPurchaseConfig);
 
         // TODO: 15.05.2021 check attribution_id param in Appdoeal requests
-        connectorCallback.setAttributionId("attribution_id", Adjust.getAdid());
+        adId = Adjust.getAdid();
+        if (adId != null) {
+            connectorCallback.setAttributionId("attribution_id", adId);
+        }
         callback.onFinished();
     }
 
@@ -127,6 +131,14 @@ public class HSAdjustService extends HSService {
         @Override
         public void onAttributionChanged(AdjustAttribution attribution) {
             HSLogger.logInfo("Adjust", "onAttributionChanged");
+            if (adId == null) {
+                if (attribution.adid.isEmpty()) {
+                    adId = Adjust.getAdid();
+                } else {
+                    adId = attribution.adid;
+                }
+                connectorCallback.setAttributionId("attribution_id", adId);
+            }
             if (attribution != null) {
                 connectorCallback.setConversionData(convertAttributionToMap(attribution));
             }
