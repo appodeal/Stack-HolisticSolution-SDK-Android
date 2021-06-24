@@ -46,8 +46,6 @@ public class HSAdjustService extends HSService {
     @Nullable
     private static OnADJPVerificationFinished externalPurchaseValidatorListener;
     @Nullable
-    private static String adId;
-    @Nullable
     private Map<String, String> eventTokens = null;
 
     public HSAdjustService() {
@@ -102,15 +100,6 @@ public class HSAdjustService extends HSService {
         AdjustAttribution attribution = Adjust.getAttribution();
         if (attribution != null && !TextUtils.isEmpty(attribution.adid)) {
             connectorCallback.setAttributionId("attribution_id", attribution.adid);
-            callback.onFinished();
-        }
-    }
-
-    private static void completeInitialization(@NonNull HSComponentCallback callback,
-                                               @NonNull HSConnectorCallback connectorCallback,
-                                               @Nullable String adId) {
-        if (adId != null) {
-            connectorCallback.setAttributionId("attribution_id", adId);
             callback.onFinished();
         }
     }
