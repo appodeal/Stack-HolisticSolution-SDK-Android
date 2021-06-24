@@ -46,6 +46,8 @@ class HSAppInstance {
     @NonNull
     private final HSConnectorDelegate connectorDelegate = new HSConnectorDelegate(this);
     @NonNull
+    private final HSRegulatorDispatcher regulatorDelegate = new HSRegulatorDispatcher(this);
+    @NonNull
     private final HSLifecycleDelegate lifecycleDelegate = new HSLifecycleDelegate();
     @NonNull
     private final List<HSAppInitializeListener> listeners = new CopyOnWriteArrayList<>();
@@ -149,6 +151,11 @@ class HSAppInstance {
     @NonNull
     HSConnectorDelegate getConnectorDelegate() {
         return connectorDelegate;
+    }
+
+    @NonNull
+    HSRegulatorDispatcher getRegulatorDelegate() {
+        return regulatorDelegate;
     }
 
     @NonNull
@@ -484,7 +491,7 @@ class HSAppInstance {
                     component.initialize(contextProvider.getActivity(),
                                          getParams(component),
                                          callback,
-                                         null);
+                                         app.getRegulatorDelegate().getBestRegulator());
                 }
             };
         }

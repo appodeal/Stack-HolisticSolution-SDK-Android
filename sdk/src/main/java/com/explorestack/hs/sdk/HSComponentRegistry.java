@@ -35,6 +35,9 @@ class HSComponentRegistry {
     static List<HSRegulator> registerRegulators(@NonNull HSAppInstance app, @NonNull Context context) {
         if (hsRegulators.isEmpty()) {
             hsRegulators = create(findHSRegulatorsAssetParams(context));
+            for (HSRegulator regulator : hsRegulators) {
+                app.getRegulatorDelegate().addRegulator(regulator);
+            }
         }
         return hsRegulators;
     }
