@@ -99,8 +99,11 @@ public class HSAdjustService extends HSService {
         adjustPurchaseConfig.setLogLevel(params.isLoggingEnabled() ? ADJPLogLevel.VERBOSE : ADJPLogLevel.INFO);
         AdjustPurchase.init(adjustPurchaseConfig);
 
-        adId = Adjust.getAdid();
-        completeInitialization(callback, connectorCallback, adId);
+        AdjustAttribution attribution = Adjust.getAttribution();
+        if (attribution != null && !TextUtils.isEmpty(attribution.adid)) {
+            connectorCallback.setAttributionId("attribution_id", attribution.adid);
+            callback.onFinished();
+        }
     }
 
     private static void completeInitialization(@NonNull HSComponentCallback callback,
@@ -127,9 +130,9 @@ public class HSAdjustService extends HSService {
     private static final class AttributionChangedListener implements OnAttributionChangedListener {
 
         @NonNull
-        private final HSConnectorCallback connectorCallback;
-        @NonNull
         private final HSComponentCallback callback;
+        @NonNull
+        private final HSConnectorCallback connectorCallback;
 
         public AttributionChangedListener(@NonNull HSComponentCallback callback,
                                           @NonNull HSConnectorCallback connectorCallback) {
@@ -140,15 +143,11 @@ public class HSAdjustService extends HSService {
         @Override
         public void onAttributionChanged(AdjustAttribution attribution) {
             HSLogger.logInfo("Adjust", "onAttributionChanged");
-            if (adId == null) {
-                if (attribution.adid.isEmpty()) {
-                    adId = Adjust.getAdid();
-                } else {
-                    adId = attribution.adid;
-                }
-                completeInitialization(callback, connectorCallback, adId);
-            }
             if (attribution != null) {
+                if (!TextUtils.isEmpty(attribution.adid)) {
+                    connectorCallback.setAttributionId("attribution_id", attribution.adid);
+                }
+                callback.onFinished();
                 connectorCallback.setConversionData(convertAttributionToMap(attribution));
             }
             if (externalAttributionListener != null) {
