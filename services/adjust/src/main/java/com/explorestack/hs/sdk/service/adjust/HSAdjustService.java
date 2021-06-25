@@ -136,9 +136,9 @@ public class HSAdjustService extends HSService {
                 if (!TextUtils.isEmpty(attribution.adid)) {
                     connectorCallback.setAttributionId("attribution_id", attribution.adid);
                 }
-                callback.onFinished();
                 connectorCallback.setConversionData(convertAttributionToMap(attribution));
             }
+            callback.onFinished();
             if (externalAttributionListener != null) {
                 externalAttributionListener.onAttributionChanged(attribution);
             }
