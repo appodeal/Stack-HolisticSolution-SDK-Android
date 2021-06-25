@@ -67,6 +67,7 @@ public class HSAppsflyerService extends HSService {
         appsFlyer.registerConversionListener(context, conversionListener);
         appsFlyer.start(context, devKey);
         connectorCallback.setAttributionId("attribution_id", appsFlyer.getAppsFlyerUID(context));
+        connectorCallback.setExtra("mmp", "appsflyer");
     }
 
     @Nullable

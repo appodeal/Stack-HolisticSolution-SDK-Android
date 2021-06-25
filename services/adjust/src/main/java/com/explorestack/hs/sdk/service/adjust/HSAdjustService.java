@@ -100,6 +100,7 @@ public class HSAdjustService extends HSService {
 
         // TODO: 15.05.2021 check attribution_id param in Appdoeal requests
         connectorCallback.setAttributionId("attribution_id", Adjust.getAdid());
+        connectorCallback.setExtra("mmp", "adjust");
         callback.onFinished();
     }
 
