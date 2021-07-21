@@ -1,5 +1,6 @@
 package com.explorestack.hs.sdk;
 
+import android.app.Application;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
@@ -9,14 +10,19 @@ public class HSComponent {
 
     @NonNull
     private final String name;
-    @Nullable
+    @NonNull
     private final String version;
+    @NonNull
+    private final String adapterVersion;
 
     private boolean isEventsEnabled = true;
 
-    public HSComponent(@NonNull String name, @Nullable String version) {
+    public HSComponent(@NonNull String name,
+                       @NonNull String version,
+                       @NonNull String adapterVersion) {
         this.name = name;
         this.version = version;
+        this.adapterVersion = adapterVersion;
     }
 
     @NonNull
@@ -24,9 +30,19 @@ public class HSComponent {
         return name;
     }
 
-    @Nullable
+    @NonNull
+    public String getServerName() {
+        return name.toLowerCase();
+    }
+
+    @NonNull
     public String getVersion() {
         return version;
+    }
+
+    @NonNull
+    public String getAdapterVersion() {
+        return adapterVersion;
     }
 
     public void setEventsEnabled(boolean enabled) {
@@ -38,12 +54,17 @@ public class HSComponent {
     }
 
     @Nullable
+    public HSIAPValidateHandler createIAPValidateHandler(@NonNull Context context) {
+        return null;
+    }
+
+    @Nullable
     public HSEventsHandler createEventsHandler(@NonNull Context context) {
         return null;
     }
 
     @Nullable
-    public HSIAPValidateHandler createIAPValidateHandler(@NonNull Context context) {
+    public Application.ActivityLifecycleCallbacks getLifecycleCallback(@NonNull Context context) {
         return null;
     }
 

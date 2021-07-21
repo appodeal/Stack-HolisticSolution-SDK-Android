@@ -1,14 +1,16 @@
 apply from: "${rootDir}/collectors.gradle"
 
 buildscript {
+    ext.kotlin_version = '1.4.10'
     repositories {
         google()
         jcenter()
     }
     dependencies {
-        classpath "com.android.tools.build:gradle:4.0.0"
+        classpath "com.android.tools.build:gradle:4.1.3"
         classpath "com.google.gms:google-services:4.3.3"
         classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.9.7"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
 
@@ -17,6 +19,9 @@ allprojects {
         google()
         jcenter()
         mavenLocal()
+        maven {
+            url "https://artifactory.appodeal.com/appodeal"
+        }
     }
 }
 
@@ -25,23 +30,17 @@ task clean(type: Delete) {
 }
 
 task publishAllToArtifactory {
-    List<String> dependsTasks = [':sdk:uploadToArtifactory']
+    List<String> dependsTasks = []
+    dependsTasks.add(':sdk:uploadAarToArtifactory')
+    collectRegulators().forEach {
+        dependsTasks.add(":regulators:${it.name}:uploadAarToArtifactory")
+    }
     collectServices().forEach {
-        dependsTasks.add(":services:${it.name}:uploadToArtifactory")
+        dependsTasks.add(":services:${it.name}:uploadAarToArtifactory")
     }
     collectConnectors().collect {
-        dependsTasks.add(":connectors:${it.name}:uploadToArtifactory")
+        dependsTasks.add(":connectors:${it.name}:uploadAarToArtifactory")
     }
-    finalizedBy(dependsTasks.toArray())
-}
-
-task publishAllToMavenLocal {
-    List<String> dependsTasks = [':sdk:uploadToMavenLocal']
-    collectServices().forEach {
-        dependsTasks.add(":services:${it.name}:uploadToMavenLocal")
-    }
-    collectConnectors().collect {
-        dependsTasks.add(":connectors:${it.name}:uploadToMavenLocal")
-    }
+    dependsTasks.add(':sdk-full:uploadAarToArtifactory')
     finalizedBy(dependsTasks.toArray())
 }

@@ -1,0 +1,28 @@
+ext {
+    componentVersionCode = 1
+    componentSdkVersion = '1.0.0'
+}
+
+android {
+    defaultConfig {
+        consumerProguardFiles "consumer-rules.pro"
+    }
+}
+
+dependencies {
+    compileOnly project(path: ':sdk')
+}
+
+afterEvaluate {
+    android {
+        defaultConfig {
+            versionCode componentVersionCode
+            versionName "${versionCode}"
+            buildConfigField "String", "COMPONENT_SDK_VERSION", "\"${componentSdkVersion}\""
+            buildConfigField "String", "COMPONENT_VERSION", "\"${obtainAarVersion(project)}\""
+        }
+    }
+}
+
+apply from: "${rootDir}/default.gradle"
+apply from: "${rootDir}/builder.gradle"

@@ -1,24 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical">
 
     <Button
-            android:id="@+id/btnSendEvent"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="logEvent"
-            android:text="Send test event"
-            tools:ignore="ButtonStyle,HardcodedText" />
+        android:id="@+id/btnSendEvent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="15dp"
+        android:onClick="logEvent"
+        android:text="Send test event"
+        tools:ignore="ButtonStyle,HardcodedText" />
 
     <Button
-            android:id="@+id/btnValidatePurchase"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="validatePurchase"
-            android:text="Validate test purchase"
-            tools:ignore="ButtonStyle,HardcodedText" />
+        android:id="@+id/btnValidateInAppPurchase"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="15dp"
+        android:onClick="flowInAppPurchase"
+        android:text="Flow inapp test purchase"
+        tools:ignore="ButtonStyle,HardcodedText" />
+
+    <Button
+        android:id="@+id/btnValidateSubsPurchase"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="15dp"
+        android:onClick="flowSubsPurchase"
+        android:text="Flow Subs test purchase"
+        tools:ignore="ButtonStyle,HardcodedText" />
 
 </LinearLayout>

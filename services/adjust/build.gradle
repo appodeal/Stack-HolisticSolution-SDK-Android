@@ -1,0 +1,16 @@
+apply plugin: 'com.android.library'
+apply from: '../service.gradle'
+
+componentVersionCode = 1
+componentSdkVersion = '4.28.1'
+
+dependencies {
+    //Adjust SDK
+    remoteDependency "com.adjust.sdk:adjust-android:$componentSdkVersion"
+    //Adjust Purchase SDK
+    remoteDependency 'com.explorestack.adjust:sdk-purchase:1.1.2'
+    //Play Install Referrer Library for Adjust SDK
+    remoteDependency 'com.android.installreferrer:installreferrer:1.1.2'
+    //Play Services Ads Identifier Library for Adjust SDK
+    remoteDependency 'com.google.android.gms:play-services-ads-identifier:17.0.0'
+}

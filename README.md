@@ -6,13 +6,9 @@ Stack Holistic Solution SDK for Android simplifies the collection and transfer o
 - [Import SDK](#import-sdk)
 	- [Add the Appodeal maven repository](#1-add-the-appodeal-maven-repository)
 	- [Add maven dependencies](#2-add-maven-dependencies)
-	- [Add required connectors and services](#3-add-required-connectors-and-services)
-        * [Connector integration](#31-connector-integration)
-            * [Appodeal Connector](#appodeal-connector)
-        * [Service integration](#32-service-integration)
-            * [AppsFlyer Service](#appsflyer-service)
-            * [Facebook Service](#facebook-service)
-            * [Firebase Service](#firebase-service)
+	- [Setup required services](#3-setup-required-services)
+		- [Facebook Service](#31-facebook-service)
+		- [Firebase Service](#32-firebase-service)
 * [Initialize SDK](#initialize-sdk)
 * [Features](#features)
   * [Enable debug logic](#enable-debug-logic)
@@ -26,7 +22,7 @@ HS SDK using [AndroidX](https://developer.android.com/jetpack/androidx), so plea
 
 ## Import SDK
 
-#### 1. Add the Appodeal maven repository
+### 1. Add the Appodeal maven repository
 
 Apps can import the HS SDK with a Gradle dependency that points to the Appodeal's Maven repository. In order to use that repository, you need to reference it in the app's project-level build.gradle file. Open yours and look for an allprojects section:
 
@@ -43,7 +39,7 @@ allprojects {
 }
 ```
 
-#### 2. Add maven dependencies
+### 2. Add maven dependencies
 
 Next, open the app-level build.gradle file for your app, and look for the dependencies section:
 
@@ -52,37 +48,49 @@ Example app-level build.gradle (excerpt)
 ```groovy
 dependencies {
     // ... other project dependencies
-    implementation 'com.explorestack.hs:sdk:1.0.2'
+    implementation 'com.explorestack.hs:sdk:2.0.0.0'
 }
 ```
 
-#### 3. Add required connectors and services
+### 3. Setup required services
+#### 3.1. Facebook Service
+> Note that HS Facebook Service will include only 'facebook-core' dependency independently
 
-In the HS SDK, we distinguish 2 main entities, these are HSService and HSConnector. HSService is a third-party SDK that does some work as a separate service. HSConnector is an entity that receives events from Services and passes them for processing(in the Appodeal SDK)
+###### 1. Configure Your Facebook App
 
-##### 3.1. Connector integration
+Please follow this [guide](https://developers.facebook.com/docs/app-events/getting-started-app-events-android) to configure you Facebook app
 
-- #### [Appodeal Connector](connectors/appodeal/README.md)
+###### 2. Add Your Facebook App ID
 
-Follow the [link](connectors/appodeal/README.md)  and configure the Appodeal Connector, then continue the integration.
+> You can find more info about Facebook integrations in this [guide](https://developers.facebook.com/docs/app-events/getting-started-app-events-android)
 
-##### 3.2. Service integration
+Open your `/app/res/values/strings.xml` file and add the following lines (remember to replace `[APP_ID]` with your actual Facebook app ID):
 
-- #### [AppsFlyer Service](services/appsflyer/README.md)
+```xml
+<string name="facebook_app_id">[APP_ID]</string>
+```
 
-Follow the [link](services/appsflyer/README.md) and configure the AppsFlyer Service, then continue the integration.
+Add a `meta-data` element to the application element:
 
-- #### [Facebook Service](services/facebook/README.md)
+```xml
+<application ...>
+    ...
+    <meta-data
+        android:name="com.facebook.sdk.ApplicationId"
+        android:value="@string/facebook_app_id"/>
+    ...
+</application>
+```
+#### 3.2. Firebase Service
+>Note that HS Firebase Service will include 'firebase-analytics' and 'firebase-config' dependencies independently
 
-Follow the [link](services/facebook/README.md) and configure the Facebook Service, then continue the integration.
+###### 1. Configure Your Firebase App
 
-- #### [Firebase Service](services/firebase/README.md)
-
-Follow the [link](services/firebase/README.md) and configure the Firebase Service, then continue the integration.
+Please, follow this [guide](https://firebase.google.com/docs/android/setup#console) to configure you Firebase app
 
 ##  Initialize SDK
 
-Holistic Solution SDK will automatically initialize all registered services (e.g - AppsFlyer, Firebase) and sync all required data to registered connectors (e.g - Appodeal).
+Holistic Solution SDK will automatically initialize all components and sync all required data to connectors (e.g - Appodeal).
 
 To initialize SDK add the line below to onCreate method of your application or activity class.
 
@@ -95,22 +103,12 @@ public class YourApplication extends Application {
     public void onCreate() {
         super.onCreate();
 
-        //Create connector for Appodeal
-        HSAppodealConnector appodealConnector = new HSAppodealConnector();
-
-        //Create service for AppsFlyer
-        HSAppsflyerService appsflyerService = new HSAppsflyerService(YOUR_APPSFLYER_DEV_KEY);
-
-        //Create Facebook service
-        HSFacebookService facebookService = new HSFacebookService();
-
-        //Create service for Firebase
-        HSFirebaseService firebaseService = new HSFirebaseService();
-
-        //Create HSApp configuration
+	//Create HSApp configuration
         HSAppConfig appConfig = new HSAppConfig()
-                .withConnectors(appodealConnector)
-                .withServices(appsflyerService, facebookService, firebaseService);
+                .setAppKey(YOUR_APPODEAL_KEY)
+                .setAdType(REQUIRED_ADS_TYPES)
+                .setDebugEnabled(...)
+                .setComponentInitializeTimeout(...);
 
         //Initialize HSApp
         HSApp.initialize(activity, appConfig, new HSAppInitializeListener() {
@@ -123,25 +121,17 @@ public class YourApplication extends Application {
     ...
 }
 ```
-
-> Please note that you should call `HSAppConfig.withConnectors` and `HSAppConfig.withServices` only once, since they will override previous appropriate values
+| Parameter            | Description                                                                                                        		               |
+|----------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
+| appKey               | [Appodeal application key](https://app.appodeal.com/apps).							                                                       |
+| adType               | Appodeal ad types (e.g - `Appodeal.INTERSTITIAL`).                                   	           	                        			   |
+| debug                | Enable sdk, services and connectors debug logic if possible.                        				                             		   |
+| timeout              | In this case is timeout for **one** operation: starting attribution service or fetching remote config. By default the value is **30 sec**.|
 
 [Code example](example/src/main/java/com/explorestack/hs/sdk/example/ExampleApplication.java#L28)
 
-[Appodeal initialization example](connectors/appodeal/README.md#appodeal_sdk_initialization)
 
 ## Features
-
-#### Enable debug logic
-Enable HSApp, services and connectors debug logic if possible
-
-```java
-HSAppConfig appConfig = new HSAppConfig()
-        //Enable debug logic
-        .setDebugEnabled(true);
-```
-
-> Please note that not all services and connector have appropriate logic
 
 #### Enable logs
 Enable HSApp, services and connectors logging.
@@ -167,30 +157,29 @@ HSApp.logEvent("hs_sdk_example_test_event", params);
 
 [Code example](example/src/main/java/com/explorestack/hs/sdk/example/ExampleActivity.java#L67)
 
-##### Disabling Events for specific service or connector
-If you want to disable Events for specific service or connector, you can call `setEventsEnabled` on appropriate component:
-```java
-HSFacebookService facebookService = new HSFacebookService();
-//Disable service Events
-facebookService.setEventsEnabled(false);
-```
-#### In-App purchase validation
-Holistic Solution SDK allows you to unify In-App purchase validation using a single method:
+
+#### Purchase validation
+Holistic Solution SDK allows you to unify purchase validation using a single method:
 ```java
 // Purchase object is returned by Google API in onPurchasesUpdated() callback
 public void validatePurchase(Purchase purchase) {
+    
     // Create new HSInAppPurchase
-    HSInAppPurchase purchase = HSInAppPurchase.newBuilder()
-            .withPublicKey("YOUR_PUBLIC_KEY")
-            .withSignature(purchase.getSignature())
-            .withPurchaseData(purchase.getOriginalJson())
-            .withPrice(...)
-            .withCurrency(...)
-            .withAdditionalParams(...)
-            .build();
+    HSInAppPurchase hsPurchase = HSInAppPurchase.newBuilder("PURCHASE_TYPE")
+        .withPublicKey("YOUR_PUBLIC_KEY")
+        .withSignature(purchase.getSignature())
+        .withPurchaseData(purchase.getOriginalJson())
+        .withPurchaseToken(purchase.getPurchaseToken())
+        .withPurchaseTimestamp(purchase.getPurchaseTime())
+        .withOrderId(purchase.getOrderId())
+        .withSku(...)
+        .withPrice(...)
+        .withCurrency(...)
+        .withAdditionalParams(...)
+        .build();	    
 
     // Validate InApp purchase
-    HSApp.validateInAppPurchase(purchase, new HSInAppPurchaseValidateListener() {
+    HSApp.validateInAppPurchase(hsPurchase, new HSInAppPurchaseValidateListener() {
         @Override
         public void onInAppPurchaseValidateSuccess(@NonNull HSInAppPurchase purchase,
                                                    @Nullable List<HSError> errors) {
@@ -208,13 +197,18 @@ public void validatePurchase(Purchase purchase) {
 
 | Parameter            | Description                                                                                                        |
 |----------------------|--------------------------------------------------------------------------------------------------------------------|
-| publicKey            | [Public key from Google Developer Console](https://support.google.com/googleplay/android-developer/answer/186113)  |
+| purchaseType         | Purchase type. Must be one of [PurchaseType](sdk/src/main/java/com/explorestack/hs/sdk/HSInAppPurchase.java#L7).   |
+| publicKey            | [Public key from Google Developer Console](https://support.google.com/googleplay/android-developer/answer/186113). |
 | signature            | Transaction signature (returned from Google API when the purchase is completed).                                   |
 | purchaseData         | Product purchased in JSON format (returned from Google API when the purchase is completed).                        |
-| price                | In-app event revenue.                                                                                              |
-| currency             | In-app event currency.                                                                                             |
-| additionalParameters | Additional parameters of the in-app event.                                                                         |
+| purchaseToken        | Product purchased token (returned from Google API when the purchase is completed).                        	        |
+| purchaseTimestamp    | Product purchased timestamp (returned from Google API when the purchase is completed).                        	    |
+| orderId              | Product purchased unique order id for the transaction (returned from Google API when the purchase is completed).   |
+| sku                  | Stock keeping unit id.											                                                    |
+| price                | Purchase revenue.                                                                                                  |
+| currency             | Purchase currency.                                                                                                 |
+| additionalParameters | Additional parameters of the purchase event.                                                                       |
 
 > In-App purchase validation runs by FIFO queue in a single thread
 
-[Code example](example/src/main/java/com/explorestack/hs/sdk/example/ExampleActivity.java#L82)
+[Code example](example/src/main/java/com/explorestack/hs/sdk/example/ExampleActivity.java#L122)

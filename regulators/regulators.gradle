@@ -1,0 +1,18 @@
+apply from: "${rootDir}/component.gradle"
+
+ext {
+    publishGroupId = 'com.explorestack.hs.sdk.regulator'
+}
+
+gradle.projectsEvaluated {
+    packageDebugAssets.doLast {
+        android.libraryVariants.forEach { variant ->
+            generateHSRegulatorAsset(variant)
+        }
+    }
+    packageReleaseAssets.doLast {
+        android.libraryVariants.forEach { variant ->
+            generateHSRegulatorAsset(variant)
+        }
+    }
+}

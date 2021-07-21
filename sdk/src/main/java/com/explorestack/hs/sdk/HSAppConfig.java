@@ -3,43 +3,16 @@ package com.explorestack.hs.sdk;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 public class HSAppConfig {
 
-    @Nullable
-    private List<HSService> services;
-    @Nullable
-    private List<HSConnector> connectors;
     private long componentInitializeTimeout;
     private boolean isDebugEnabled;
-
-    public HSAppConfig withServices(@Nullable HSService... services) {
-        if (services != null) {
-            this.services = Arrays.asList(services);
-        }
-        return this;
-    }
+    @Nullable
+    private String appKey;
+    @Nullable
+    private Integer adType;
 
     @NonNull
-    List<HSService> getServices() {
-        return services == null ? Collections.<HSService>emptyList() : services;
-    }
-
-    public HSAppConfig withConnectors(@Nullable HSConnector... connectors) {
-        if (connectors != null) {
-            this.connectors = Arrays.asList(connectors);
-        }
-        return this;
-    }
-
-    @NonNull
-    List<HSConnector> getConnectors() {
-        return connectors == null ? Collections.<HSConnector>emptyList() : connectors;
-    }
-
     public HSAppConfig setComponentInitializeTimeout(long componentInitializeTimeout) {
         this.componentInitializeTimeout = componentInitializeTimeout;
         return this;
@@ -49,12 +22,36 @@ public class HSAppConfig {
         return componentInitializeTimeout;
     }
 
+    @NonNull
     public HSAppConfig setDebugEnabled(boolean debugEnabled) {
+        HSLogger.setEnabled(debugEnabled);
         isDebugEnabled = debugEnabled;
         return this;
     }
 
     boolean isDebugEnabled() {
         return isDebugEnabled;
+    }
+
+    @NonNull
+    public HSAppConfig setAppKey(@NonNull String appKey) {
+        this.appKey = appKey;
+        return this;
+    }
+
+    @Nullable
+    String getAppKey() {
+        return appKey;
+    }
+
+    @NonNull
+    public HSAppConfig setAdType(@NonNull Integer adType) {
+        this.adType = adType;
+        return this;
+    }
+
+    @Nullable
+    Integer getAdType() {
+        return adType;
     }
 }

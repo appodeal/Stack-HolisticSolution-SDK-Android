@@ -1,35 +1,10 @@
 apply plugin: 'com.android.library'
 apply from: '../connector.gradle'
 
-android {
-    compileSdkVersion 29
-    buildToolsVersion "29.0.3"
-
-    defaultConfig {
-        minSdkVersion 14
-        targetSdkVersion 29
-        versionCode 2
-        versionName "1.0.1"
-
-        consumerProguardFiles "consumer-rules.pro"
-    }
-
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
-    }
-}
-
-repositories {
-    maven {
-        url "https://artifactory.appodeal.com/appodeal"
-    }
-}
+componentVersionCode = 1
+componentSdkVersion = '2.10.1.0'
 
 dependencies {
-    remoteDependency 'com.appodeal.ads:sdk:2.8.1.+'
-
-    implementation project(path: ':sdk')
+    //Appodeal SDK
+    remoteDependency "com.appodeal.ads:sdk:$componentSdkVersion"
 }

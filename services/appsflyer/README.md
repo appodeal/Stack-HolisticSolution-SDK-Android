@@ -11,51 +11,6 @@ Please, follow this [guide](https://support.appsflyer.com/hc/en-us/articles/2070
 
 Please, visit this [link](https://support.appsflyer.com/hc/en-us/articles/207032126-Android-SDK-integration-for-developers#integration-31-retrieving-your-dev-key) to get more info about retrieving AppsFlyer dev key
 
-## 3. Import Service
-
-```groovy
-dependencies {
-    // ... other project dependencies
-
-    implementation 'com.explorestack.hs.sdk.service:appsflyer:1.0.2'
-}
-```
-
-## 4. Register Service
-
-```java
-public class MainActivity extends AppCompatActivity {
-    ...
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        //Create service for AppsFlyer
-        HSAppsflyerService appsflyerService = new HSAppsflyerService(YOUR_APPSFLYER_DEV_KEY);
-    
-        //Create HSApp configuration
-        HSAppConfig appConfig = new HSAppConfig()
-                //Include AppsFlyer service to HSApp config
-                .withServices(appsflyerService, ...);        
-    }
-    ...
-}
-```
-
-#### Service parameters
-
-| Parameter      | Required | Description                                                                                                                                                                                                      |
-|----------------|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| devKey         | Yes      | AppsFlyer dev key. You can find more info about it's retrieving [here](https://support.appsflyer.com/hc/en-us/articles/207032126-Android-SDK-integration-for-developers#integration-31-retrieving-your-dev-key)  |
-| conversionKeys | No       | Keys, which should be collected from AppsFlyer 'onConversionDataSuccess' response. If it's not provided or it's empty, all keys will be collected                                                                |
-
-#### Service methods
-
-| Method                                     | Description                                                                                                                             |
-|--------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
-| setAppsFlyerConversionListener             | Sets custom AppsFlyer `AppsFlyerConversionListener` which will be called when service receives appropriate AppsFlyer events             |
-| setAppsFlyerInAppPurchaseValidatorListener | Sets custom AppsFlyer `AppsFlyerInAppPurchaseValidatorListener` which will be called when service receives appropriate AppsFlyer events | 
-
 ## Known issues
 
 #### Issue with 'fullBackupContent' merging
