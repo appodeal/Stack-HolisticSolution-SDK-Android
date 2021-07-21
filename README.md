@@ -14,7 +14,7 @@ Stack Holistic Solution SDK for Android simplifies the collection and transfer o
   * [Enable debug logic](#enable-debug-logic)
   * [Enable logs](#enable-logs)
   * [Events](#events)
-  * [In-App purchase validation](#in-app-purchase-validation)
+  * [In-App purchase validation](#purchase-validation)
 
 ## Before integration started
 
@@ -48,7 +48,7 @@ Example app-level build.gradle (excerpt)
 ```groovy
 dependencies {
     // ... other project dependencies
-    implementation 'com.explorestack.hs:sdk:2.0.0.0'
+    implementation 'com.explorestack.hs:sdk:2.0.0.+'
 }
 ```
 
