@@ -1,13 +1,27 @@
-apply from: "${rootDir}/collectors.gradle"
-
-include ':sdk'
 include ':example'
+include ':sdk'
+include ':sdk-full'
 include ':services'
 include ':connectors'
+include ':regulators'
 
-collectServices().forEach { folder ->
-    settings.include(":services:$folder.name")
-}
-collectConnectors().forEach { folder ->
-    settings.include(":connectors:$folder.name")
+collectModules(settings, file('services'), null, null)
+collectModules(settings, file('connectors'), null, null)
+collectModules(settings, file('regulators'), null, null)
+
+static void collectModules(settings,
+                           File rootFolder,
+                           List<String> including,
+                           List<String> excluding) {
+    rootFolder.listFiles()
+            .findAll { file -> file.isDirectory() && !file.name.startsWith('_') }
+            .forEach { folder ->
+                if (including == null
+                        || including.contains(folder.name)) {
+                    if (excluding == null
+                            || !excluding.contains(folder.name)) {
+                        settings.include(":$rootFolder.name:$folder.name")
+                    }
+                }
+            }
 }

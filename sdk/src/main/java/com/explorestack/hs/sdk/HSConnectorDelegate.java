@@ -5,14 +5,13 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 
 class HSConnectorDelegate implements HSConnectorCallback {
 
     @NonNull
-    private final List<HSConnector> children = new ArrayList<>();
+    private final Map<HSComponent, HSConnectorCallback> callbacks = new HashMap<>();
     @NonNull
     private final HSAppInstance app;
 
@@ -20,15 +19,20 @@ class HSConnectorDelegate implements HSConnectorCallback {
         this.app = app;
     }
 
-    public void setConnectors(@NonNull List<HSConnector> connectors) {
-        children.clear();
-        children.addAll(connectors);
+    public void addCallback(@NonNull HSComponent component, @Nullable HSConnectorCallback callback) {
+        if (callback != null) {
+            callbacks.put(component, callback);
+        }
+    }
+
+    public void removeCallback(@NonNull HSComponent component) {
+        callbacks.remove(component);
     }
 
     @Override
     public void setAttributionId(@Nullable String key, @Nullable String value) {
         HSLogger.logInfo("setAttributionId", String.format("%s: %s", key, value));
-        for (HSConnector connector : children) {
+        for (HSConnectorCallback connector : callbacks.values()) {
             connector.setAttributionId(key, value);
         }
     }
@@ -36,24 +40,24 @@ class HSConnectorDelegate implements HSConnectorCallback {
     @Override
     public void setConversionData(@Nullable Map<String, Object> data) {
         HSLogger.logInfo("setConversionData", data);
-        for (HSConnector connector : children) {
-            connector.setConversionData(data);
+        for (HSConnectorCallback callback : callbacks.values()) {
+            callback.setConversionData(data);
         }
     }
 
     @Override
     public void setExtra(@Nullable String key, @Nullable String value) {
         HSLogger.logInfo("setExtra", String.format("%s: %s", key, value));
-        for (HSConnector connector : children) {
-            connector.setExtra(key, value);
+        for (HSConnectorCallback callback : callbacks.values()) {
+            callback.setExtra(key, value);
         }
     }
 
     @Override
     public void setExtra(@Nullable Map<String, Object> extra) {
         HSLogger.logInfo("setData", extra);
-        for (HSConnector connector : children) {
-            connector.setExtra(extra);
+        for (HSConnectorCallback callback : callbacks.values()) {
+            callback.setExtra(extra);
         }
     }
 
@@ -61,8 +65,8 @@ class HSConnectorDelegate implements HSConnectorCallback {
     public void trackInApp(@Nullable Context context,
                            @Nullable HSInAppPurchase purchase) {
         HSLogger.logInfo("trackInApp", purchase);
-        for (HSConnector connector : children) {
-            connector.trackInApp(context, purchase);
+        for (HSConnectorCallback callback : callbacks.values()) {
+            callback.trackInApp(context, purchase);
         }
     }
 }

@@ -1,6 +1,8 @@
 package com.explorestack.hs.sdk;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.app.Application;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
@@ -8,11 +10,15 @@ import android.os.Looper;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import org.json.JSONObject;
+
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TimerTask;
+import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
@@ -25,7 +31,7 @@ class HSAppInstance {
     @SuppressLint("StaticFieldLeak")
     private static HSAppInstance instance;
 
-    public static HSAppInstance getInstance() {
+    public static HSAppInstance get() {
         if (instance == null) {
             instance = new HSAppInstance();
         }
@@ -40,10 +46,18 @@ class HSAppInstance {
     @NonNull
     private final HSConnectorDelegate connectorDelegate = new HSConnectorDelegate(this);
     @NonNull
+    private final HSRegulatorDispatcher regulatorDelegate = new HSRegulatorDispatcher(this);
+    @NonNull
+    private final HSLifecycleDelegate lifecycleDelegate = new HSLifecycleDelegate();
+    @NonNull
     private final List<HSAppInitializeListener> listeners = new CopyOnWriteArrayList<>();
+    @NonNull
+    private final String trackId = UUID.randomUUID().toString();
 
     @Nullable
-    private Context context;
+    private Context appContext;
+    @Nullable
+    private WeakReference<Activity> weakTopActivity;
     @Nullable
     private HSAppInitializer initializer;
     private boolean isInitialized = false;
@@ -75,8 +89,9 @@ class HSAppInstance {
                     inAppPurchaseValidateDispatcher.dispatchPendingPurchase();
                 }
             };
-            this.context = context.getApplicationContext();
-            initializer = new HSAppInitializer(this.context, this, config, connectorDelegate, listenerDelegate);
+            appContext = context.getApplicationContext();
+            ((Application) appContext).registerActivityLifecycleCallbacks(lifecycleDelegate);
+            initializer = new HSAppInitializer(new HSSimpleContextProvider(context), this, config, listenerDelegate);
             initializer.start();
         }
     }
@@ -114,93 +129,153 @@ class HSAppInstance {
         inAppPurchaseValidateDispatcher.validateInAppPurchase(purchase, listener);
     }
 
+    public String getVersion() {
+        return BuildConfig.HS_VERSION;
+    }
+
     @NonNull
-    public HSEventsDispatcher getEventsDispatcher() {
+    String getTrackId() {
+        return trackId;
+    }
+
+    @NonNull
+    HSEventsDispatcher getEventsDispatcher() {
         return eventsDispatcher;
     }
 
     @NonNull
-    public HSIAPValidateDispatcher getInAppPurchaseValidateDispatcher() {
+    HSIAPValidateDispatcher getInAppPurchaseValidateDispatcher() {
         return inAppPurchaseValidateDispatcher;
     }
 
     @NonNull
-    public HSConnectorDelegate getConnectorDelegate() {
+    HSConnectorDelegate getConnectorDelegate() {
         return connectorDelegate;
     }
 
+    @NonNull
+    HSRegulatorDispatcher getRegulatorDelegate() {
+        return regulatorDelegate;
+    }
+
+    @NonNull
+    HSLifecycleDelegate getLifecycleDelegate() {
+        return lifecycleDelegate;
+    }
+
     @Nullable
-    public Context getContext() {
-        return context;
+    Context getAppContext() {
+        return appContext;
+    }
+
+    @Nullable
+    Activity getTopActivity() {
+        return weakTopActivity != null ? weakTopActivity.get() : null;
+    }
+
+    void setTopActivity(@Nullable Activity activity) {
+        if (activity != null) {
+            weakTopActivity = new WeakReference<>(activity);
+        }
     }
 
     private static final class HSAppInitializer extends Thread {
 
+        private static final String TAG = "HSAppInitializer";
         private static final Executor executor = Executors.newCachedThreadPool();
 
         @NonNull
-        private final Context context;
+        private final HSContextProvider contextProvider;
         @NonNull
         private final HSAppInstance app;
         @NonNull
         private final HSAppConfig appConfig;
         @NonNull
-        private final HSConnectorDelegate connectorDelegate;
-        @NonNull
         private final HSAppInitializeListener listener;
         @Nullable
         private List<HSError> errors;
 
-        public HSAppInitializer(@NonNull Context context,
+        public HSAppInitializer(@NonNull HSContextProvider contextProvider,
                                 @NonNull HSAppInstance app,
                                 @NonNull HSAppConfig appConfig,
-                                @NonNull HSConnectorDelegate connectorDelegate,
                                 @NonNull HSAppInitializeListener listener) {
-            this.context = context;
+            this.contextProvider = contextProvider;
             this.app = app;
             this.appConfig = appConfig;
-            this.connectorDelegate = connectorDelegate;
             this.listener = listener;
         }
 
         @Override
         public void run() {
-            final List<HSService> services = appConfig.getServices();
-            final List<HSConnector> connectors = appConfig.getConnectors();
+            Context targetContext = contextProvider.getApplicationContext();
+            final List<HSService> services = HSComponentRegistry.registerServices(app, targetContext);
+            final List<HSRegulator> regulators = HSComponentRegistry.registerRegulators(app, targetContext);
+            final List<HSConnector> connectors = HSComponentRegistry.registerConnectors(app, targetContext);
+
             if (isListNullOrEmpty(services)) {
                 addError(HSError.NoServices);
+            }
+            if (isListNullOrEmpty(regulators)) {
+                addError(HSError.NoRegulator);
             }
             if (isListNullOrEmpty(connectors)) {
                 addError(HSError.NoConnectors);
             }
-            final HSAppParamsImpl appParams = new HSAppParamsImpl(appConfig);
-            //Connectors initialization
-            initializeComponents(connectors, new HSComponentInitializerBuilder<HSConnector>() {
+            final HSAdvertisingProfile advertisingProfile = HSAdvertisingInfo.updateInfo(targetContext);
+            final HSAppParamsImpl appParams = new HSAppParamsImpl(appConfig, app, advertisingProfile);
+
+            // Regulators initialization
+            initializeComponents(
+                    regulators,
+                    new HSRegulatorInitializerBuilder(app, contextProvider, appParams)
+            );
+            HSNetworkRequest.Callback<JSONObject, HSError> callback
+                    = new HSNetworkRequest.Callback<JSONObject, HSError>() {
                 @Override
-                public HSComponentInitializer<HSConnector> build(@NonNull HSConnector component,
-                                                                 @NonNull HSComponentCallback callback) {
-                    return new HSConnectorInitializer(context, app, component, appParams, callback);
+                public void onSuccess(@Nullable JSONObject result) {
+                    // Services initialization
+                    initializeComponents(
+                            services,
+                            new HSServiceInitializerBuilder(app, contextProvider, appParams, result)
+                    );
+                    // Connectors initialization
+                    initializeComponents(
+                            connectors,
+                            new HSConnectorInitializerBuilder(app, contextProvider, appParams)
+                    );
+                    listener.onAppInitialized(getErrors());
                 }
-            });
-            // Service initialization
-            connectorDelegate.setConnectors(connectors);
-            initializeComponents(services, new HSComponentInitializerBuilder<HSService>() {
+
                 @Override
-                public HSComponentInitializer<HSService> build(@NonNull HSService component,
-                                                               @NonNull HSComponentCallback callback) {
-                    return new HSServiceInitializer(
-                            context, app, component, appParams, callback, connectorDelegate);
+                public void onFail(@Nullable HSError result) {
+                    if (result != null) {
+                        addError(result);
+                    }
+                    // Connectors initialization
+                    initializeComponents(
+                            connectors,
+                            new HSConnectorInitializerBuilder(app, contextProvider, appParams)
+                    );
+                    listener.onAppInitialized(getErrors());
                 }
-            });
-            listener.onAppInitialized(getErrors());
+            };
+            HSApiRequest.initRequest(targetContext, appParams, callback);
         }
 
         private <T extends HSComponent> void initializeComponents(
-                @NonNull List<T> components,
+                @NonNull List<T> registeredComponents,
                 @NonNull HSComponentInitializerBuilder<T> initializerBuilder
         ) {
-            if (components.isEmpty()) {
+            if (registeredComponents.isEmpty()) {
                 return;
+            }
+            List<T> components = new ArrayList<>();
+            for (T component : registeredComponents) {
+                if (initializerBuilder.isComponentEnable(component)) {
+                    components.add(component);
+                } else {
+                    addError(HSError.forComponent(component, "disabled on the server!"));
+                }
             }
             final CountDownLatch componentsWaiter = new CountDownLatch(components.size());
             final HSComponentCallback componentsCallback = new HSComponentCallback() {
@@ -242,11 +317,6 @@ class HSAppInstance {
         private <T> boolean isListNullOrEmpty(@Nullable List<T> list) {
             return list == null || list.isEmpty();
         }
-
-        private interface HSComponentInitializerBuilder<T extends HSComponent> {
-            HSComponentInitializer<T> build(@NonNull T component,
-                                            @NonNull HSComponentCallback callback);
-        }
     }
 
     private static abstract class HSComponentInitializer<T extends HSComponent> implements Runnable {
@@ -254,7 +324,7 @@ class HSAppInstance {
         @NonNull
         protected final HSAppInstance app;
         @NonNull
-        protected final Context context;
+        protected final HSContextProvider contextProvider;
         @NonNull
         protected final T component;
         @NonNull
@@ -265,12 +335,12 @@ class HSAppInstance {
         private boolean isFinished = false;
 
         public HSComponentInitializer(@NonNull HSAppInstance app,
-                                      @NonNull Context context,
+                                      @NonNull HSContextProvider contextProvider,
                                       @NonNull T component,
                                       @NonNull HSAppParams appParams,
                                       @NonNull HSComponentCallback callback) {
             this.app = app;
-            this.context = context;
+            this.contextProvider = contextProvider;
             this.component = component;
             this.appParams = appParams;
             this.callback = callback;
@@ -280,7 +350,7 @@ class HSAppInstance {
         public void run() {
             HSLogger.logInfo(component.getName(), "Version: " + component.getVersion());
             HSLogger.logInfo(component.getName(), "Initialization start");
-            HSUtils.startTimeout(appParams.getComponentInitializeTimeoutMs(), new TimerTask() {
+            HSCoreUtils.startTimeout(appParams.getComponentInitializeTimeoutMs(), new TimerTask() {
                 @Override
                 public void run() {
                     if (!isFinished) {
@@ -309,11 +379,13 @@ class HSAppInstance {
                     }
                 }
             };
-            final Context targetContext = context.getApplicationContext();
+            final Context targetContext = contextProvider.getApplicationContext();
             if (component.isEventsEnabled()) {
                 app.getEventsDispatcher().addHandler(
                         component, component.createEventsHandler(targetContext));
             }
+            app.getLifecycleDelegate().addCallback(
+                    component, component.getLifecycleCallback(targetContext));
             app.getInAppPurchaseValidateDispatcher().addHandler(
                     component, component.createIAPValidateHandler(targetContext));
             doProcess(componentCallback);
@@ -322,40 +394,128 @@ class HSAppInstance {
         abstract void doProcess(@NonNull HSComponentCallback callback);
     }
 
-    private static final class HSConnectorInitializer extends HSComponentInitializer<HSConnector> implements Runnable {
+    private abstract static class HSComponentInitializerBuilder<T extends HSComponent> {
 
-        public HSConnectorInitializer(@NonNull Context context,
-                                      @NonNull HSAppInstance app,
-                                      @NonNull HSConnector component,
-                                      @NonNull HSAppParams appParams,
-                                      @NonNull HSComponentCallback callback) {
-            super(app, context, component, appParams, callback);
+        @NonNull
+        protected final HSAppInstance app;
+        @NonNull
+        protected final HSContextProvider contextProvider;
+        @NonNull
+        protected final HSAppParams appParams;
+
+        HSComponentInitializerBuilder(@NonNull HSAppInstance app,
+                                      @NonNull HSContextProvider contextProvider,
+                                      @NonNull HSAppParams appParams) {
+            this.app = app;
+            this.contextProvider = contextProvider;
+            this.appParams = appParams;
         }
 
-        @Override
-        void doProcess(@NonNull HSComponentCallback callback) {
-            component.initialize(context, appParams, callback);
+        boolean isComponentEnable(@NonNull T component) {
+            return true;
+        }
+
+        abstract HSComponentInitializer<T> build(@NonNull T component,
+                                                 @NonNull HSComponentCallback callback);
+
+        @NonNull
+        HSComponentParams getParams(@NonNull T component) {
+            return new HSComponentParamsImpl(appParams);
         }
     }
 
-    private static final class HSServiceInitializer extends HSComponentInitializer<HSService> implements Runnable {
+    private static final class HSServiceInitializerBuilder extends HSComponentInitializerBuilder<HSService> {
 
         @NonNull
-        private final HSConnectorCallback connectorCallback;
+        private final JSONObject serverParams;
 
-        public HSServiceInitializer(@NonNull Context context,
-                                    @NonNull HSAppInstance app,
-                                    @NonNull HSService component,
+        HSServiceInitializerBuilder(@NonNull HSAppInstance app,
+                                    @NonNull HSContextProvider contextProvider,
                                     @NonNull HSAppParams appParams,
-                                    @NonNull HSComponentCallback callback,
-                                    @NonNull HSConnectorCallback connectorCallback) {
-            super(app, context, component, appParams, callback);
-            this.connectorCallback = connectorCallback;
+                                    @Nullable JSONObject serverParams) {
+            super(app, contextProvider, appParams);
+            this.serverParams = serverParams == null ? new JSONObject() : serverParams;
         }
 
         @Override
-        void doProcess(@NonNull HSComponentCallback callback) {
-            component.start(context, appParams, callback, connectorCallback);
+        boolean isComponentEnable(@NonNull HSService component) {
+            return serverParams.has(component.getServerName());
+        }
+
+        @Override
+        HSComponentInitializer<HSService> build(@NonNull HSService component,
+                                                @NonNull HSComponentCallback callback) {
+            return new HSComponentInitializer<HSService>(app, contextProvider, component, appParams, callback) {
+                @Override
+                void doProcess(@NonNull HSComponentCallback callback) {
+                    component.start(contextProvider.getContext(),
+                                    getParams(component),
+                                    callback,
+                                    app.getConnectorDelegate());
+                }
+            };
+        }
+
+        @NonNull
+        @Override
+        HSComponentParams getParams(@NonNull HSService component) {
+            JSONObject extra = serverParams.optJSONObject(component.getServerName());
+            extra = extra == null ? new JSONObject() : extra;
+            configureComponent(component, extra);
+            return new HSComponentParamsImpl(appParams, extra);
+        }
+
+        private void configureComponent(@NonNull HSService component,
+                                        @NonNull JSONObject extra) {
+            if (extra.has("tracking")) {
+                boolean tracking = extra.optBoolean("tracking", true);
+                component.setEventsEnabled(tracking);
+            }
+        }
+    }
+
+    private static final class HSConnectorInitializerBuilder extends HSComponentInitializerBuilder<HSConnector> {
+
+        HSConnectorInitializerBuilder(@NonNull HSAppInstance app,
+                                      @NonNull HSContextProvider contextProvider,
+                                      @NonNull HSAppParams appParams) {
+            super(app, contextProvider, appParams);
+        }
+
+        @Override
+        HSComponentInitializer<HSConnector> build(@NonNull HSConnector component,
+                                                  @NonNull HSComponentCallback callback) {
+            return new HSComponentInitializer<HSConnector>(app, contextProvider, component, appParams, callback) {
+                @Override
+                void doProcess(@NonNull HSComponentCallback callback) {
+                    component.initialize(contextProvider.getActivity(),
+                                         getParams(component),
+                                         callback,
+                                         app.getRegulatorDelegate().getBestRegulator());
+                }
+            };
+        }
+    }
+
+    private static final class HSRegulatorInitializerBuilder extends HSComponentInitializerBuilder<HSRegulator> {
+
+        HSRegulatorInitializerBuilder(@NonNull HSAppInstance app,
+                                      @NonNull HSContextProvider contextProvider,
+                                      @NonNull HSAppParams appParams) {
+            super(app, contextProvider, appParams);
+        }
+
+        @Override
+        HSComponentInitializer<HSRegulator> build(@NonNull HSRegulator component,
+                                                  @NonNull HSComponentCallback callback) {
+            return new HSComponentInitializer<HSRegulator>(app, contextProvider, component, appParams, callback) {
+                @Override
+                void doProcess(@NonNull HSComponentCallback callback) {
+                    component.start(contextProvider.getActivity(),
+                                    getParams(component),
+                                    callback);
+                }
+            };
         }
     }
 }

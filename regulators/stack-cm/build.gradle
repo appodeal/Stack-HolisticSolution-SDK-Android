@@ -1,0 +1,10 @@
+apply plugin: 'com.android.library'
+apply from: '../regulators.gradle'
+
+componentVersionCode = 1
+componentSdkVersion = '1.0.5'
+
+dependencies {
+    //Explorestack Consent SDK
+    remoteDependency "com.explorestack:consent:$componentSdkVersion"
+}

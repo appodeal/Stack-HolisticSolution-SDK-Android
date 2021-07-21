@@ -1,10 +1,15 @@
-import groovy.json.JsonSlurper
-
 apply plugin: 'com.jfrog.artifactory'
 apply plugin: 'maven-publish'
 
-/** Specific key for group publishing tasks */
-def PUBLISH_GROUP = "Artifactory publishing"
+/**
+ * Gradle file for submit aar builds to maven repo.
+ * Required params:
+ * repo - target maven repository;
+ * uname - user name for authorization;
+ * upassword - user password for authorization.
+ *
+ * Example: 'YOUR_REQUIRED_TASK_NAME' -Partifactory_repo='YOUR_REPOSITORY_NAME' -Partifactory_username='YOUR_USER_NAME" -Partifactory_password='YOUR_ARTIFACTORY_USER_NAME'
+ */
 
 artifactory {
     contextUrl = 'https://artifactory.appodeal.com/artifactory'
@@ -31,119 +36,65 @@ artifactory {
     }
 }
 
-project.afterEvaluate {
+def PUBLISH_GROUP = "Artifactory publishing"
+def core = project(":sdk")
+def full = project(":sdk-full")
+
+afterEvaluate {
     publishing {
         publications {
             "_${project.name}_"(MavenPublication) {
-                groupId = publishGroupId
+                groupId = project.publishGroupId
                 artifactId = project.hasProperty('publishArtifactId') ? publishArtifactId : project.name
-                version = project.android.defaultConfig.versionName
+                version = obtainAarVersion(project)
                 artifact "${project.buildDir}/outputs/aar/${project.name}-release.aar"
                 pom.withXml {
                     def dependenciesNode = asNode().appendNode('dependencies')
-                    // Including remote dependencies if they exists
-                    includeRemoteDependencies(
-                            "${buildDir}/publish/dependencies.json",
-                            dependenciesNode)
+                    if (project.name == full.name) {
+                        List<Project> components = new ArrayList<>()
+                        collectServices().forEach { components.add(it) }
+                        collectConnectors().forEach { components.add(it) }
+                        collectRegulators().forEach { components.add(it) }
+                        components.forEach { project ->
+                            def dependencyNode = dependenciesNode.appendNode('dependency')
+                            dependencyNode.appendNode('groupId', project.ext.publishGroupId)
+                            dependencyNode.appendNode('artifactId', project.name)
+                            dependencyNode.appendNode('version', obtainAarVersion(project))
+                        }
+                    }
+                    if (project.name != core.name) {
+                        def dependencyNode = dependenciesNode.appendNode('dependency')
+                        dependencyNode.appendNode('groupId', core.ext.publishGroupId)
+                        dependencyNode.appendNode('artifactId', core.ext.publishArtifactId)
+                        dependencyNode.appendNode('version', obtainAarVersion(core))
+                    }
+                    project.configurations.remoteDependency.getDependencies().each { dependency ->
+                        if (dependency instanceof ExternalModuleDependency) {
+                            println("implementation dependency: " + dependency.properties)
+
+                            def dependencyNode = dependenciesNode.appendNode('dependency')
+                            dependencyNode.appendNode('groupId', dependency.group)
+                            dependencyNode.appendNode('artifactId', dependency.name)
+                            dependencyNode.appendNode('version', dependency.version)
+                            if (dependency.artifacts != null && !dependency.artifacts.isEmpty()) {
+                                def type = dependency.artifacts.first().type
+                                // We are interested only in 'aar' types
+                                if ("aar" == type) {
+                                    dependencyNode.appendNode('type', type)
+                                }
+                            }
+                        } else {
+                            throw new GradleException("implementation dependency can be used only for ExternalModuleDependencies")
+                        }
+                    }
                 }
             }
         }
     }
 }
 
-task uploadToArtifactory(group: PUBLISH_GROUP) {
-    dependsOn prepareForPublishing
-    finalizedBy artifactoryPublish
-}
+task uploadAarToArtifactory(dependsOn: [assemble, artifactoryPublish], group: PUBLISH_GROUP)
+artifactoryPublish.mustRunAfter(assemble)
 
-task uploadToMavenLocal(group: PUBLISH_GROUP) {
-    dependsOn prepareForPublishing
-    finalizedBy publishToMavenLocal
-}
-
-void includeRemoteDependencies(String dependenciesFilePath, Node dependenciesNode) {
-    // If dependencies info file exists than process it
-    def dependenciesFile = file(dependenciesFilePath)
-    if (dependenciesFile.exists()) {
-        def dependenciesExt = new JsonSlurper().parse(dependenciesFile)
-        dependenciesExt.forEach { dep ->
-            // Add dependency from dependencies info file
-            addDependency(dependenciesNode, dep, null, dep.exclusions)
-        }
-    }
-}
-
-static Node addDependency(Node dependenciesNode, element, String scope, exclusions) {
-    def type = null
-    try {
-        type = element.type
-    } catch (ignore) {
-    }
-    return addDependency(
-            dependenciesNode,
-            element.groupId,
-            element.artifactId,
-            element.version,
-            type,
-            scope,
-            exclusions)
-}
-
-static Node addDependency(Node dependenciesNode,
-                          String groupId,
-                          String artifactId,
-                          String version,
-                          String type,
-                          String scope,
-                          List exclusions) {
-    def dependencyNode = dependenciesNode.appendNode('dependency')
-    dependencyNode.appendNode('groupId', groupId)
-    dependencyNode.appendNode('artifactId', artifactId)
-    dependencyNode.appendNode('version', version)
-    if (type != null) {
-        dependencyNode.appendNode('type', type)
-    }
-    if (scope != null) {
-        dependencyNode.appendNode('scope', scope)
-    }
-    def exclusionsList = []
-    def forceExclusions = [
-            [
-                    groupId   : 'com.android.support',
-                    artifactId: 'support-v4'
-            ]
-    ]
-    // We exclude some dependencies since they can affect publisher builds and we already override
-    // them in our SDK-Core artifact.
-    // Note: we should implement force exclusions only for 3rd party dependencies
-    if (!groupId.contains('com.appodeal') && forceExclusions.find {
-        it.groupId == groupId && it.artifactId == artifactId
-    } == null) {
-        exclusionsList.addAll(forceExclusions)
-    }
-    // If dependency has self exclusions than add them too
-    if (exclusions != null) {
-        exclusionsList.addAll(exclusions.findAll { exclusion ->
-            forceExclusions.find {
-                exclusion.groupId == it.groupId && exclusion.artifactId == it.artifactId
-            } == null
-        })
-    }
-    if (!exclusionsList.isEmpty()) {
-        def exclusionsNode = dependencyNode.appendNode("exclusions")
-        exclusionsList.forEach { exclude ->
-            addExclusion(exclusionsNode, exclude.groupId, exclude.artifactId)
-        }
-    }
-    return dependencyNode
-}
-
-static void addExclusion(Node exclusionsNode, String groupId, String artifactId) {
-    def exclusionNode = exclusionsNode.appendNode("exclusion")
-    if (groupId != null) {
-        exclusionNode.appendNode('groupId', groupId)
-    }
-    if (artifactId != null) {
-        exclusionNode.appendNode('artifactId', artifactId)
-    }
-}
+task uploadAarToLocal(dependsOn: [assemble, publishToMavenLocal], group: PUBLISH_GROUP)
+publishToMavenLocal.mustRunAfter(assemble)

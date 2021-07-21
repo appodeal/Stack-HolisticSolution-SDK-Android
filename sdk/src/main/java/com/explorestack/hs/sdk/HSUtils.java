@@ -1,13 +1,22 @@
 package com.explorestack.hs.sdk;
 
 import android.os.Bundle;
+import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.ArrayList;
+import java.util.Currency;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class HSUtils {
 
@@ -52,7 +61,75 @@ public class HSUtils {
         }
     }
 
-    static void startTimeout(long timeoutMs, @NonNull TimerTask callback) {
-        new Timer().schedule(callback, timeoutMs);
+    @Nullable
+    public static Double parsePrice(@NonNull String price, @Nullable String currency) {
+        try {
+            if (TextUtils.isEmpty(currency)) {
+                return Double.parseDouble(price);
+            } else {
+                DecimalFormat format = new DecimalFormat();
+                Currency formatCurrency = Currency.getInstance(currency);
+                format.setCurrency(formatCurrency);
+                int idxDot = price.indexOf('.');
+                int idxCom = price.indexOf(',');
+                boolean containsDot = idxDot > -1;
+                boolean containsComma = idxCom > -1;
+                DecimalFormatSymbols formatSymbols = new DecimalFormatSymbols();
+                if (containsDot && !containsComma) {
+                    setUpFormatSymbols(formatSymbols, '.', ',');
+                } else if (!containsDot && containsComma) {
+                    setUpFormatSymbols(formatSymbols, ',', '.');
+                } else if (containsDot && containsComma) {
+                    if (idxDot > idxCom) {
+                        setUpFormatSymbols(formatSymbols, '.', ',');
+                    } else {
+                        setUpFormatSymbols(formatSymbols, ',', '.');
+                    }
+                }
+                format.setDecimalFormatSymbols(formatSymbols);
+                Number number = format.parse(price.replace(formatCurrency.getSymbol(), ""));
+                if (number != null) {
+                    return number.doubleValue();
+                }
+            }
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
+        try {
+            return Double.parseDouble(price);
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
+        return null;
+    }
+
+    private static void setUpFormatSymbols(DecimalFormatSymbols formatSymbols,
+                                           char decimalSeparator,
+                                           char groupingSeparator) {
+        formatSymbols.setDecimalSeparator(decimalSeparator);
+        formatSymbols.setGroupingSeparator(groupingSeparator);
+    }
+
+    @NonNull
+    public static <T> List<T> jsonArrayToList(@Nullable JSONArray jsonArray) {
+        List<T> list = new ArrayList<>();
+        if (jsonArray != null) {
+            for (int i = 0; i < jsonArray.length(); i++) {
+                list.add((T) jsonArray.opt(i));
+            }
+        }
+        return list;
+    }
+
+    @NonNull
+    public static <T> Map<String, T> jsonToMap(@Nullable JSONObject jsonObject) {
+        Map<String, T> map = new HashMap<>();
+        if (jsonObject != null) {
+            for (Iterator<String> it = jsonObject.keys(); it.hasNext(); ) {
+                String key = it.next();
+                map.put(key, (T) jsonObject.opt(key));
+            }
+        }
+        return map;
     }
 }

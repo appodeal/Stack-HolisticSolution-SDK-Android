@@ -1,31 +1,10 @@
 apply plugin: 'com.android.library'
 apply from: '../service.gradle'
 
-android {
-    compileSdkVersion 29
-    buildToolsVersion "29.0.3"
-
-    defaultConfig {
-        minSdkVersion 14
-        targetSdkVersion 29
-        versionCode 2
-        versionName "1.0.1"
-
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles "consumer-rules.pro"
-    }
-
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
-    }
-}
+componentVersionCode = 1
+componentSdkVersion = '7.1.0'
 
 dependencies {
     //Facebook Core SDK
-    remoteDependency 'com.facebook.android:facebook-core:7.1.0'
-
-    implementation project(path: ':sdk')
+    remoteDependency "com.facebook.android:facebook-core:$componentSdkVersion"
 }

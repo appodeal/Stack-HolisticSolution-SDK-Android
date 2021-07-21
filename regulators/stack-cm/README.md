@@ -1,0 +1,1 @@
+# Stack SDK Regulator for Holistic Solution SDK

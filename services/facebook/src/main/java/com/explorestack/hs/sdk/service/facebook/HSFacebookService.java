@@ -9,8 +9,8 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.explorestack.hs.sdk.HSAppParams;
 import com.explorestack.hs.sdk.HSComponentCallback;
+import com.explorestack.hs.sdk.HSComponentParams;
 import com.explorestack.hs.sdk.HSConnectorCallback;
 import com.explorestack.hs.sdk.HSEventsHandler;
 import com.explorestack.hs.sdk.HSService;
@@ -26,19 +26,19 @@ public class HSFacebookService extends HSService {
     private static final String NOT_REPLACED_ID_PLACEHOLDER = "HS_FB_NOT_REPLACED";
 
     @Nullable
-    private AppEventsLogger eventsLogger;
+    private static AppEventsLogger eventsLogger;
 
     public HSFacebookService() {
-        super("Facebook", FacebookSdk.getSdkVersion());
+        super("Facebook", FacebookSdk.getSdkVersion(), BuildConfig.COMPONENT_VERSION);
     }
 
-    public void setEventsLogger(@Nullable AppEventsLogger eventsLogger) {
-        this.eventsLogger = eventsLogger;
+    public static void setEventsLogger(@Nullable AppEventsLogger logger) {
+        eventsLogger = logger;
     }
 
     @Override
     public void start(@NonNull Context context,
-                      @NonNull HSAppParams params,
+                      @NonNull HSComponentParams params,
                       @NonNull HSComponentCallback callback,
                       @NonNull HSConnectorCallback connectorCallback) {
         try {
@@ -72,7 +72,7 @@ public class HSFacebookService extends HSService {
         return new HSEventsDelegate();
     }
 
-    private final class HSEventsDelegate implements HSEventsHandler {
+    private static final class HSEventsDelegate implements HSEventsHandler {
 
         @Override
         public void onEvent(@NonNull String eventName, @Nullable Map<String, Object> params) {

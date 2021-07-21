@@ -6,8 +6,8 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.explorestack.hs.sdk.HSAppParams;
 import com.explorestack.hs.sdk.HSComponentCallback;
+import com.explorestack.hs.sdk.HSComponentParams;
 import com.explorestack.hs.sdk.HSConnectorCallback;
 import com.explorestack.hs.sdk.HSEventsHandler;
 import com.explorestack.hs.sdk.HSService;
@@ -21,41 +21,57 @@ import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigValue;
 
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 public class HSFirebaseService extends HSService {
 
     @Nullable
-    private final Map<String, Object> targetValuesKeys;
-    private final Long minimumFetchIntervalInSeconds;
+    private static FirebaseAnalytics firebaseAnalytics;
+    @Nullable
+    private static String cachedVersion;
 
     @Nullable
-    private FirebaseAnalytics firebaseAnalytics;
+    private List<String> configKeys = null;
 
     public HSFirebaseService() {
-        this(null, null);
+        super("Firebase", getFirebaseVersion(), BuildConfig.COMPONENT_VERSION);
     }
 
-    public HSFirebaseService(@Nullable Map<String, Object> targetValuesKeys) {
-        this(targetValuesKeys, null);
+    public static void setFirebaseAnalytics(@Nullable FirebaseAnalytics analytics) {
+        firebaseAnalytics = analytics;
     }
 
-    public HSFirebaseService(@Nullable Map<String, Object> targetValuesKeys,
-                             @Nullable Long minimumFetchIntervalInSeconds) {
-        super("Firebase", null);
-        this.targetValuesKeys = targetValuesKeys;
-        this.minimumFetchIntervalInSeconds = minimumFetchIntervalInSeconds;
-    }
-
-    public void setFirebaseAnalytics(@Nullable FirebaseAnalytics analytics) {
-        this.firebaseAnalytics = analytics;
+    @NonNull
+    private static String getFirebaseVersion() {
+        if (cachedVersion == null) {
+            try {
+                Properties properties = new Properties();
+                ClassLoader classLoader = HSFirebaseService.class.getClassLoader();
+                if (classLoader != null) {
+                    properties.load(classLoader.getResourceAsStream("firebase-analytics.properties"));
+                    cachedVersion = properties.getProperty("firebase-analytics_client");
+                    if (cachedVersion == null) {
+                        cachedVersion = properties.getProperty("version");
+                    }
+                }
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        }
+        if (cachedVersion == null) {
+            cachedVersion = BuildConfig.COMPONENT_SDK_VERSION;
+        }
+        return cachedVersion;
     }
 
     @Override
     public void start(@NonNull Context context,
-                      @NonNull HSAppParams params,
+                      @NonNull HSComponentParams params,
                       @NonNull final HSComponentCallback callback,
                       @NonNull final HSConnectorCallback connectorCallback) {
         final FirebaseApp firebaseApp = FirebaseApp.initializeApp(context);
@@ -63,8 +79,15 @@ public class HSFirebaseService extends HSService {
             callback.onFail(buildError("Failed to retrieve FirebaseApp"));
             return;
         }
-        final boolean isTargetValuesKeysProvided =
-                targetValuesKeys != null && !targetValuesKeys.isEmpty();
+        JSONObject extra = params.getExtra();
+        Long minimumFetchIntervalInSeconds = null;
+        if (extra.has("expiration_duration")) {
+            minimumFetchIntervalInSeconds = extra.optLong("expiration_duration");
+        }
+        if (extra.has("config_keys")) {
+            configKeys = HSUtils.jsonArrayToList(extra.optJSONArray("config_keys"));
+        }
+        final boolean isConfigKeysProvided = configKeys != null && !configKeys.isEmpty();
         final FirebaseRemoteConfig firebaseRemoteConfig =
                 FirebaseRemoteConfig.getInstance(firebaseApp);
         final FirebaseRemoteConfigSettings.Builder configSettingsBuilder =
@@ -74,23 +97,19 @@ public class HSFirebaseService extends HSService {
         }
         final FirebaseRemoteConfigSettings configSettings = configSettingsBuilder.build();
         firebaseRemoteConfig.setConfigSettingsAsync(configSettings);
-        if (isTargetValuesKeysProvided) {
-            firebaseRemoteConfig.setDefaultsAsync(targetValuesKeys);
-        }
         firebaseRemoteConfig
                 .fetchAndActivate()
                 .addOnCompleteListener(new OnCompleteListener<Boolean>() {
                     @Override
                     public void onComplete(@NonNull Task<Boolean> task) {
                         List<String> keywords = new ArrayList<>();
-                        if (isTargetValuesKeysProvided) {
-                            for (String key : targetValuesKeys.keySet()) {
+                        if (isConfigKeysProvided) {
+                            for (String key : configKeys) {
                                 FirebaseRemoteConfigValue value = firebaseRemoteConfig.getValue(key);
                                 keywords.add(value.asString());
                             }
                         } else {
-                            for (FirebaseRemoteConfigValue value
-                                    : firebaseRemoteConfig.getAll().values()) {
+                            for (FirebaseRemoteConfigValue value : firebaseRemoteConfig.getAll().values()) {
                                 keywords.add(value.asString());
                             }
                         }
@@ -115,7 +134,7 @@ public class HSFirebaseService extends HSService {
         return new HSEventsDelegate();
     }
 
-    private final class HSEventsDelegate implements HSEventsHandler {
+    private static final class HSEventsDelegate implements HSEventsHandler {
 
         @Override
         public void onEvent(@NonNull String eventName, @Nullable Map<String, Object> params) {
