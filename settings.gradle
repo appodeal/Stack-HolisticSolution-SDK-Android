@@ -1,3 +1,5 @@
+rootProject.name = "StackHolisticSolutionSDK"
+
 include ':example'
 include ':sdk'
 include ':sdk-full'

@@ -1,8 +1,8 @@
 apply plugin: 'com.android.library'
 apply from: '../connector.gradle'
 
-componentVersionCode = 1
-componentSdkVersion = '2.10.1.1'
+componentVersionCode = 2
+componentSdkVersion = '2.10.2.1'
 
 dependencies {
     //Appodeal SDK

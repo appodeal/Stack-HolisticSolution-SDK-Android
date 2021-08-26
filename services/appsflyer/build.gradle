@@ -1,8 +1,8 @@
 apply plugin: 'com.android.library'
 apply from: '../service.gradle'
 
-componentVersionCode = 1
-componentSdkVersion = '6.2.0'
+componentVersionCode = 2
+componentSdkVersion = '6.3.2'
 
 dependencies {
     //Appsflyer SDK

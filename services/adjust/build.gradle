@@ -1,8 +1,8 @@
 apply plugin: 'com.android.library'
 apply from: '../service.gradle'
 
-componentVersionCode = 1
-componentSdkVersion = '4.28.1'
+componentVersionCode = 2
+componentSdkVersion = '4.28.4'
 
 dependencies {
     //Adjust SDK
