@@ -1,10 +1,10 @@
 apply plugin: 'com.android.library'
 apply from: '../connector.gradle'
 
-componentVersionCode = 3
+componentVersionCode = 4
 componentSdkVersion = '2.10.2.3'
 
 dependencies {
     //Appodeal SDK
-    remoteDependency "com.appodeal.ads:sdk:$componentSdkVersion"
+    remoteDependency "com.appodeal.ads:sdk-postbid:$componentSdkVersion"
 }
