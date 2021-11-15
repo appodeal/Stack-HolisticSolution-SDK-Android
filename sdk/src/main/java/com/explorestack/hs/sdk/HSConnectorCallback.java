@@ -17,4 +17,6 @@ public interface HSConnectorCallback {
     void setExtra(@Nullable Map<String, Object> extra);
 
     void trackInApp(@Nullable Context context, @Nullable HSInAppPurchase purchase);
+
+    Map<String, Object> getConnectorData();
 }

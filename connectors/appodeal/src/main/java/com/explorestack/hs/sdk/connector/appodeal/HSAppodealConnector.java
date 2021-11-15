@@ -19,6 +19,7 @@ import com.explorestack.hs.sdk.HSLogger;
 import com.explorestack.hs.sdk.HSRegulator;
 import com.explorestack.hs.sdk.HSUtils;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class HSAppodealConnector extends HSConnector<Consent> {
@@ -64,6 +65,7 @@ public class HSAppodealConnector extends HSConnector<Consent> {
     }
 
     private static final class HSConnectorDelegate implements HSConnectorCallback {
+        private Map<String, Object> extra = new HashMap<>();
 
         @Override
         public void setAttributionId(@Nullable String key, @Nullable String value) {
@@ -85,6 +87,7 @@ public class HSAppodealConnector extends HSConnector<Consent> {
         public void setExtra(@Nullable String key, @Nullable String value) {
             if (key != null && value != null) {
                 Appodeal.setExtraData(key, value);
+                extra.put(key, value);
             }
         }
 
@@ -109,6 +112,18 @@ public class HSAppodealConnector extends HSConnector<Consent> {
                     }
                 }
             }
+        }
+
+        @Override
+        public Map<String, Object> getConnectorData() {
+            Map<String, Object> data = new HashMap<>();
+            data.put("appodeal_framework", Appodeal.getFrameworkName());
+            data.put("appodeal_framework_version", Appodeal.getEngineVersion());
+            data.put("appodeal_plugin_version", Appodeal.getPluginVersion());
+            data.put("appodeal_sdk_version", Appodeal.getVersion());
+            data.put("appodeal_segment_id", Appodeal.getSegmentId());
+            data.put("firebase_keywords", extra);
+            return data;
         }
     }
 }
