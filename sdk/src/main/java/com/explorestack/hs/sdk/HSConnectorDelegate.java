@@ -69,4 +69,13 @@ class HSConnectorDelegate implements HSConnectorCallback {
             callback.trackInApp(context, purchase);
         }
     }
+
+    @Override
+    public Map<String, Object> getConnectorData() {
+        Map<String, Object> data = new HashMap<>();
+        for (HSConnectorCallback callback : callbacks.values()) {
+            data.putAll(callback.getConnectorData());
+        }
+        return data;
+    }
 }
