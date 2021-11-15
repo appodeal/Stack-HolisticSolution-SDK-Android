@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 apply from: '../service.gradle'
 
-componentVersionCode = 2
+componentVersionCode = 3
 componentSdkVersion = '6.3.2'
 
 dependencies {

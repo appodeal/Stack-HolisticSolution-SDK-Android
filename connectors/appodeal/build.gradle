@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 apply from: '../connector.gradle'
 
-componentVersionCode = 4
+componentVersionCode = 5
 componentSdkVersion = '2.10.3.0'
 
 dependencies {
