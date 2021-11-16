@@ -93,7 +93,7 @@ public class HSAdjustService extends HSService {
             Adjust.addSessionPartnerParameter("externalDeviceId", idfa);
             adjustConfig.setExternalDeviceId(idfa);
         }
-        Map<String, Object> partnerParams = connectorCallback.obtainPartnerParams();
+        Map<String, Object> partnerParams = connectorCallback.getPartnerParams();
         if (partnerParams != null && partnerParams.size() > 0) {
             for (Map.Entry<String, Object> param : partnerParams.entrySet()) {
                 String key = param.getKey();
@@ -230,16 +230,14 @@ public class HSAdjustService extends HSService {
         public void onEvent(@NonNull String eventName,
                             @Nullable Map<String, Object> params) {
             String eventToken = getEventToken(eventName);
-            Map<String, Object> eventParams = new HashMap<>();
+            Map<String, Object> partnerParams = null;
             if (connectorCallback != null) {
-                eventParams.putAll(connectorCallback.obtainPartnerParams());
+                partnerParams = connectorCallback.getPartnerParams();
             }
-            if (params != null) {
-                eventParams.putAll(params);
-            }
+            partnerParams = HSUtils.mergeMap(params, partnerParams);
             AdjustEvent adjustEvent = new AdjustEvent(eventToken);
-            if (eventParams.size() > 0) {
-                for (Map.Entry<String, Object> param : eventParams.entrySet()) {
+            if (partnerParams.size() > 0) {
+                for (Map.Entry<String, Object> param : partnerParams.entrySet()) {
                     String key = param.getKey();
                     String value = String.valueOf(param.getValue());
                     adjustEvent.addCallbackParameter(key, value);
@@ -329,12 +327,15 @@ public class HSAdjustService extends HSService {
                                     purchase.getSignature(),
                                     purchase.getPurchaseToken());
                     subscription.setPurchaseTime(purchase.getPurchaseTimestamp());
-                    Map<String, String> params = purchase.getAdditionalParameters();
-                    mergePartnerParams(params);
-                    if (params.size() > 0) {
-                        for (Map.Entry<String, String> param : params.entrySet()) {
+                    Map<String, Object> partnerParams = null;
+                    if (connectorCallback != null) {
+                        partnerParams = connectorCallback.getPartnerParams();
+                    }
+                    partnerParams = HSUtils.mergeMap(purchase.getAdditionalParameters(), partnerParams);
+                    if (partnerParams.size() > 0) {
+                        for (Map.Entry<String, Object> param : partnerParams.entrySet()) {
                             String key = param.getKey();
-                            String value = param.getValue();
+                            String value = String.valueOf(param.getValue());
                             subscription.addCallbackParameter(key, value);
                             subscription.addPartnerParameter(key, value);
                         }
@@ -355,12 +356,15 @@ public class HSAdjustService extends HSService {
                 if (price != null) {
                     AdjustEvent event = new AdjustEvent(getEventToken("hs_sdk_purchase"));
                     event.setRevenue(price, currency);
-                    Map<String, String> params = purchase.getAdditionalParameters();
-                    mergePartnerParams(params);
-                    if (params.size() > 0) {
-                        for (Map.Entry<String, String> param : params.entrySet()) {
+                    Map<String, Object> partnerParams = null;
+                    if (connectorCallback != null) {
+                        partnerParams = connectorCallback.getPartnerParams();
+                    }
+                    partnerParams = HSUtils.mergeMap(purchase.getAdditionalParameters(), partnerParams);
+                    if (partnerParams.size() > 0) {
+                        for (Map.Entry<String, Object> param : partnerParams.entrySet()) {
                             String key = param.getKey();
-                            String value = param.getValue();
+                            String value = String.valueOf(param.getValue());
                             event.addCallbackParameter(key, value);
                             event.addPartnerParameter(key, value);
                         }
@@ -371,23 +375,6 @@ public class HSAdjustService extends HSService {
                 }
             }
             onFail(buildError("Adjust in-app track failed"));
-        }
-
-        private void mergePartnerParams(@Nullable Map<String, String> params){
-            Map<String, Object> partnerParams = new HashMap<>();
-            if (connectorCallback != null) {
-                partnerParams.putAll(connectorCallback.obtainPartnerParams());
-            }
-            if (params == null) {
-                params = new HashMap<>();
-            }
-            if (partnerParams.size() > 0) {
-                for (Map.Entry<String, Object> param : partnerParams.entrySet()) {
-                    String key = param.getKey();
-                    String value = String.valueOf(param.getValue());
-                    params.put(key, value);
-                }
-            }
         }
 
         private void onSuccess() {
