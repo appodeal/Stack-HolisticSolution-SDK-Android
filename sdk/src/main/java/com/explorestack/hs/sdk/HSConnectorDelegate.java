@@ -72,10 +72,10 @@ class HSConnectorDelegate implements HSConnectorCallback {
 
     @Override
     public Map<String, Object> obtainPartnerParams() {
-        Map<String, Object> data = new HashMap<>();
+        Map<String, Object> partnerParams = new HashMap<>();
         for (HSConnectorCallback callback : callbacks.values()) {
-            data.putAll(callback.obtainPartnerParams());
+            partnerParams.putAll(callback.obtainPartnerParams());
         }
-        return data;
+        return partnerParams;
     }
 }

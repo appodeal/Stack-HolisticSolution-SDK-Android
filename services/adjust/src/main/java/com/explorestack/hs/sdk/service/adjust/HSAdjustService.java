@@ -45,7 +45,8 @@ public class HSAdjustService extends HSService {
     private static OnAttributionChangedListener externalAttributionListener;
     @Nullable
     private static OnADJPVerificationFinished externalPurchaseValidatorListener;
-
+    @Nullable
+    private static HSConnectorCallback connectorCallback;
     @Nullable
     private Map<String, String> eventTokens = null;
 
@@ -80,6 +81,7 @@ public class HSAdjustService extends HSService {
         if (extra.has("events")) {
             eventTokens = HSUtils.jsonToMap(extra.optJSONObject("events"));
         }
+        HSAdjustService.connectorCallback = connectorCallback;
         AdjustConfig adjustConfig = new AdjustConfig(context, appToken, environment);
         adjustConfig.setLogLevel(HSLogger.isEnabled() ? LogLevel.VERBOSE : LogLevel.INFO);
         adjustConfig.setOnAttributionChangedListener(new AttributionChangedListener(callback, connectorCallback));
@@ -228,9 +230,16 @@ public class HSAdjustService extends HSService {
         public void onEvent(@NonNull String eventName,
                             @Nullable Map<String, Object> params) {
             String eventToken = getEventToken(eventName);
+            Map<String, Object> eventParams = new HashMap<>();
+            if (connectorCallback != null) {
+                eventParams.putAll(connectorCallback.obtainPartnerParams());
+            }
+            if (params != null) {
+                eventParams.putAll(params);
+            }
             AdjustEvent adjustEvent = new AdjustEvent(eventToken);
-            if (params != null && params.size() > 0) {
-                for (Map.Entry<String, Object> param : params.entrySet()) {
+            if (eventParams.size() > 0) {
+                for (Map.Entry<String, Object> param : eventParams.entrySet()) {
                     String key = param.getKey();
                     String value = String.valueOf(param.getValue());
                     adjustEvent.addCallbackParameter(key, value);
@@ -321,7 +330,8 @@ public class HSAdjustService extends HSService {
                                     purchase.getPurchaseToken());
                     subscription.setPurchaseTime(purchase.getPurchaseTimestamp());
                     Map<String, String> params = purchase.getAdditionalParameters();
-                    if (params != null && params.size() > 0) {
+                    mergePartnerParams(params);
+                    if (params.size() > 0) {
                         for (Map.Entry<String, String> param : params.entrySet()) {
                             String key = param.getKey();
                             String value = param.getValue();
@@ -346,7 +356,8 @@ public class HSAdjustService extends HSService {
                     AdjustEvent event = new AdjustEvent(getEventToken("hs_sdk_purchase"));
                     event.setRevenue(price, currency);
                     Map<String, String> params = purchase.getAdditionalParameters();
-                    if (params != null && params.size() > 0) {
+                    mergePartnerParams(params);
+                    if (params.size() > 0) {
                         for (Map.Entry<String, String> param : params.entrySet()) {
                             String key = param.getKey();
                             String value = param.getValue();
@@ -360,6 +371,20 @@ public class HSAdjustService extends HSService {
                 }
             }
             onFail(buildError("Adjust in-app track failed"));
+        }
+
+        private void mergePartnerParams(@NonNull Map<String, String> params){
+            Map<String, Object> partnerParams = new HashMap<>();
+            if (connectorCallback != null) {
+                partnerParams.putAll(connectorCallback.obtainPartnerParams());
+            }
+            if (partnerParams.size() > 0) {
+                for (Map.Entry<String, Object> param : partnerParams.entrySet()) {
+                    String key = param.getKey();
+                    String value = String.valueOf(param.getValue());
+                    params.put(key, value);
+                }
+            }
         }
 
         private void onSuccess() {

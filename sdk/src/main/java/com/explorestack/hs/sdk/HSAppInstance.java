@@ -121,13 +121,7 @@ class HSAppInstance {
     }
 
     public void logEvent(@NonNull String eventName, @Nullable Map<String, Object> params) {
-        Map<String, Object> connectorParams = connectorDelegate.getConnectorData();
-        if (params != null) {
-            params.putAll(connectorParams);
-            eventsDispatcher.logEvent(eventName, params);
-        } else {
-            eventsDispatcher.logEvent(eventName, connectorParams);
-        }
+        eventsDispatcher.logEvent(eventName, params);
     }
 
     public void validateInAppPurchase(@NonNull HSInAppPurchase purchase,

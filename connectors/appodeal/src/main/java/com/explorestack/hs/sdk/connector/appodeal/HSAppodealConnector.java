@@ -115,14 +115,14 @@ public class HSAppodealConnector extends HSConnector<Consent> {
 
         @Override
         public Map<String, Object> obtainPartnerParams() {
-            Map<String, Object> data = new HashMap<>();
-            data.put("appodeal_framework", Appodeal.getFrameworkName());
-            data.put("appodeal_framework_version", Appodeal.getEngineVersion());
-            data.put("appodeal_plugin_version", Appodeal.getPluginVersion());
-            data.put("appodeal_sdk_version", Appodeal.getVersion());
-            data.put("appodeal_segment_id", Appodeal.getSegmentId());
-            data.put("firebase_keywords", ExtraData.getJson().optString("keywords"));
-            return data;
+            Map<String, Object> partnerParams = new HashMap<>();
+            partnerParams.put("appodeal_framework", Appodeal.getFrameworkName());
+            partnerParams.put("appodeal_framework_version", Appodeal.getEngineVersion());
+            partnerParams.put("appodeal_plugin_version", Appodeal.getPluginVersion());
+            partnerParams.put("appodeal_sdk_version", Appodeal.getVersion());
+            partnerParams.put("appodeal_segment_id", Appodeal.getSegmentId());
+            partnerParams.put("firebase_keywords", ExtraData.getJson().optString("keywords"));
+            return partnerParams;
         }
     }
 }

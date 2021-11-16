@@ -33,6 +33,8 @@ public class HSAppsflyerService extends HSService {
     private static AppsFlyerConversionListener externalConversionListener;
     @Nullable
     private static AppsFlyerInAppPurchaseValidatorListener externalPurchaseValidatorListener;
+    @Nullable
+    private static HSConnectorCallback connectorCallback;
 
     public HSAppsflyerService() {
         super("Appsflyer", AppsFlyerLib.getInstance().getSdkVersion(), BuildConfig.COMPONENT_VERSION);
@@ -57,12 +59,14 @@ public class HSAppsflyerService extends HSService {
             callback.onFail(buildError("DevKey not provided"));
             return;
         }
+        HSAppsflyerService.connectorCallback = connectorCallback;
         List<String> conversionKeys = HSUtils.jsonArrayToList(extra.optJSONArray("conversion_keys"));
         final AppsFlyerLib appsFlyer = AppsFlyerLib.getInstance();
         appsFlyer.setLogLevel(HSLogger.isEnabled() ? AFLogger.LogLevel.VERBOSE : AFLogger.LogLevel.NONE);
         AppsFlyerConversionListener conversionListener = new ConversionListener(conversionKeys, callback, connectorCallback);
         appsFlyer.init(devKey, conversionListener, context);
         appsFlyer.logEvent(context, null, null);
+        appsFlyer.setAdditionalData(connectorCallback.obtainPartnerParams());
         appsFlyer.registerConversionListener(context, conversionListener);
         appsFlyer.start(context, devKey);
         connectorCallback.setAttributionId("attribution_id", appsFlyer.getAppsFlyerUID(context));
@@ -158,7 +162,15 @@ public class HSAppsflyerService extends HSService {
         @Override
         public void onEvent(@NonNull String eventName,
                             @Nullable Map<String, Object> params) {
-            AppsFlyerLib.getInstance().logEvent(context, eventName, params);
+            Map<String, Object> eventParams = new HashMap<>();
+            if (connectorCallback != null) {
+                eventParams.putAll(connectorCallback.obtainPartnerParams());
+            }
+            if (params != null) {
+                eventParams.putAll(params);
+            }
+            AppsFlyerLib.getInstance().logEvent(context, eventName, eventParams);
+            AppsFlyerLib.getInstance().setAdditionalData(eventParams);
         }
     }
 
@@ -177,10 +189,30 @@ public class HSAppsflyerService extends HSService {
         public void onValidateInAppPurchase(@NonNull HSInAppPurchase purchase,
                                             @NonNull HSIAPValidateCallback callback) {
             pendingCallback = callback;
+            Map<String, String> purchaseParams = purchase.getAdditionalParameters();
+            mergePartnerParams(purchaseParams);
             AppsFlyerLib.getInstance().validateAndLogInAppPurchase(
                     context, purchase.getPublicKey(), purchase.getSignature(),
                     purchase.getPurchaseData(), purchase.getPrice(),
-                    purchase.getCurrency(), purchase.getAdditionalParameters());
+                    purchase.getCurrency(), purchaseParams);
+            if (connectorCallback != null) {
+                AppsFlyerLib.getInstance()
+                        .setAdditionalData(connectorCallback.obtainPartnerParams());
+            }
+        }
+
+        private void mergePartnerParams(@NonNull Map<String, String> params){
+            Map<String, Object> partnerParams = new HashMap<>();
+            if (connectorCallback != null) {
+                partnerParams.putAll(connectorCallback.obtainPartnerParams());
+            }
+            if (partnerParams.size() > 0) {
+                for (Map.Entry<String, Object> param : partnerParams.entrySet()) {
+                    String key = param.getKey();
+                    String value = String.valueOf(param.getValue());
+                    params.put(key, value);
+                }
+            }
         }
 
         @Override
