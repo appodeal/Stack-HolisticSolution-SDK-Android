@@ -132,4 +132,18 @@ public class HSUtils {
         }
         return map;
     }
+
+    // TODO: 16.11.2021 [denis.glavatskikh]
+    @NonNull
+    public static <T> Map<String, T> mergeMap(@Nullable Map firstMap,
+                                              @Nullable Map second) {
+        Map<String, T> resultMap = new HashMap<>();
+        if (firstMap != null && firstMap.size() > 0) {
+            resultMap.putAll(firstMap);
+        }
+        if (second != null && second.size() > 0) {
+            resultMap.putAll(second);
+        }
+        return resultMap;
+    }
 }

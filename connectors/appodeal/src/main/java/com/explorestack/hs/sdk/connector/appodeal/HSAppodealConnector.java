@@ -113,8 +113,9 @@ public class HSAppodealConnector extends HSConnector<Consent> {
             }
         }
 
+        @NonNull
         @Override
-        public Map<String, Object> obtainPartnerParams() {
+        public Map<String, Object> getPartnerParams() {
             Map<String, Object> partnerParams = new HashMap<>();
             partnerParams.put("appodeal_framework", Appodeal.getFrameworkName());
             partnerParams.put("appodeal_framework_version", Appodeal.getEngineVersion());
