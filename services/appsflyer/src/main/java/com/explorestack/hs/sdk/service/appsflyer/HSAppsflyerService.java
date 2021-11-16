@@ -201,10 +201,13 @@ public class HSAppsflyerService extends HSService {
             }
         }
 
-        private void mergePartnerParams(@NonNull Map<String, String> params){
+        private void mergePartnerParams(@Nullable Map<String, String> params){
             Map<String, Object> partnerParams = new HashMap<>();
             if (connectorCallback != null) {
                 partnerParams.putAll(connectorCallback.obtainPartnerParams());
+            }
+            if (params == null) {
+                params = new HashMap<>();
             }
             if (partnerParams.size() > 0) {
                 for (Map.Entry<String, Object> param : partnerParams.entrySet()) {
