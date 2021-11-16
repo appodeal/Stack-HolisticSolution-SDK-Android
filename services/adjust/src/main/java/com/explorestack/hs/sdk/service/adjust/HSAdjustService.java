@@ -88,7 +88,17 @@ public class HSAdjustService extends HSService {
         if (advertisingProfile != null && advertisingProfile.isZero()) {
             String idfa = advertisingProfile.getId(context);
             Adjust.addSessionCallbackParameter("externalDeviceId", idfa);
+            Adjust.addSessionPartnerParameter("externalDeviceId", idfa);
             adjustConfig.setExternalDeviceId(idfa);
+        }
+        Map<String, Object> partnerParams = connectorCallback.obtainPartnerParams();
+        if (partnerParams != null && partnerParams.size() > 0) {
+            for (Map.Entry<String, Object> param : partnerParams.entrySet()) {
+                String key = param.getKey();
+                String value = String.valueOf(param.getValue());
+                Adjust.addSessionCallbackParameter(key, value);
+                Adjust.addSessionPartnerParameter(key, value);
+            }
         }
         if (context instanceof Application) {
             ((Application) context).registerActivityLifecycleCallbacks(new AdjustLifecycleCallbacks());

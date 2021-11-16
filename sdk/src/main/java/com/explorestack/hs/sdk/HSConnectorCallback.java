@@ -18,5 +18,5 @@ public interface HSConnectorCallback {
 
     void trackInApp(@Nullable Context context, @Nullable HSInAppPurchase purchase);
 
-    Map<String, Object> getConnectorData();
+    Map<String, Object> obtainPartnerParams();
 }

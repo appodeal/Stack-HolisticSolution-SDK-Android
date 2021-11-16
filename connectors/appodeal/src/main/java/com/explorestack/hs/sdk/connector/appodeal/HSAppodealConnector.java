@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.appodeal.ads.Appodeal;
+import com.appodeal.ads.ExtraData;
 import com.appodeal.ads.utils.Log;
 import com.explorestack.consent.Consent;
 import com.explorestack.hs.sdk.HSComponentCallback;
@@ -65,7 +66,6 @@ public class HSAppodealConnector extends HSConnector<Consent> {
     }
 
     private static final class HSConnectorDelegate implements HSConnectorCallback {
-        private Map<String, Object> extra = new HashMap<>();
 
         @Override
         public void setAttributionId(@Nullable String key, @Nullable String value) {
@@ -87,7 +87,6 @@ public class HSAppodealConnector extends HSConnector<Consent> {
         public void setExtra(@Nullable String key, @Nullable String value) {
             if (key != null && value != null) {
                 Appodeal.setExtraData(key, value);
-                extra.put(key, value);
             }
         }
 
@@ -115,14 +114,14 @@ public class HSAppodealConnector extends HSConnector<Consent> {
         }
 
         @Override
-        public Map<String, Object> getConnectorData() {
+        public Map<String, Object> obtainPartnerParams() {
             Map<String, Object> data = new HashMap<>();
             data.put("appodeal_framework", Appodeal.getFrameworkName());
             data.put("appodeal_framework_version", Appodeal.getEngineVersion());
             data.put("appodeal_plugin_version", Appodeal.getPluginVersion());
             data.put("appodeal_sdk_version", Appodeal.getVersion());
             data.put("appodeal_segment_id", Appodeal.getSegmentId());
-            data.put("firebase_keywords", extra.get("keywords"));
+            data.put("firebase_keywords", ExtraData.getJson().optString("keywords"));
             return data;
         }
     }
