@@ -122,7 +122,7 @@ public class HSAppodealConnector extends HSConnector<Consent> {
             data.put("appodeal_plugin_version", Appodeal.getPluginVersion());
             data.put("appodeal_sdk_version", Appodeal.getVersion());
             data.put("appodeal_segment_id", Appodeal.getSegmentId());
-            data.put("firebase_keywords", extra);
+            data.put("firebase_keywords", extra.get("keywords"));
             return data;
         }
     }

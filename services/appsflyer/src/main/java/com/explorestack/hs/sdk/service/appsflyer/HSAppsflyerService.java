@@ -159,8 +159,6 @@ public class HSAppsflyerService extends HSService {
         public void onEvent(@NonNull String eventName,
                             @Nullable Map<String, Object> params) {
             AppsFlyerLib.getInstance().logEvent(context, eventName, params);
-            // TODO: 15.11.21 get Appsflyer partnerId
-            AppsFlyerLib.getInstance().setPartnerData("partnerId", params);
         }
     }
 
