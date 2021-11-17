@@ -1,6 +1,7 @@
 package com.explorestack.hs.sdk;
 
 import android.content.Context;
+import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -68,5 +69,21 @@ class HSConnectorDelegate implements HSConnectorCallback {
         for (HSConnectorCallback callback : callbacks.values()) {
             callback.trackInApp(context, purchase);
         }
+    }
+
+    @NonNull
+    @Override
+    public Map<String, Object> getPartnerParams() {
+        Map<String, Object> partnerParams = new HashMap<>();
+        for (HSConnectorCallback callback : callbacks.values()) {
+            for (Map.Entry<String, Object> param : callback.getPartnerParams().entrySet()) {
+                String key = param.getKey();
+                Object value = param.getValue();
+                if (!TextUtils.isEmpty(key) && value != null) {
+                    partnerParams.put(key, value);
+                }
+            }
+        }
+        return partnerParams;
     }
 }

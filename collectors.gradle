@@ -1,5 +1,5 @@
 List<Project> collectServices() {
-    return collectProjects(':services', null, ["appsflyer"])
+    return collectProjects(':services', null, null)
 }
 
 List<Project> collectConnectors() {

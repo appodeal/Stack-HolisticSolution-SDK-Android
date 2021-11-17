@@ -132,4 +132,18 @@ public class HSUtils {
         }
         return map;
     }
+
+    @NonNull
+    @SafeVarargs
+    public static <T> Map<String, T> mergeMap(@Nullable Map<String, ?>... maps) {
+        Map<String, T> resultMap = new HashMap<>();
+        if (maps != null && maps.length != 0) {
+            for (Map map : maps) {
+                if (map != null && map.size() > 0) {
+                    resultMap.putAll(map);
+                }
+            }
+        }
+        return resultMap;
+    }
 }
