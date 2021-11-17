@@ -263,10 +263,25 @@ public class HSAdjustService extends HSService {
                                             @NonNull HSIAPValidateCallback callback) {
             pendingCallback = callback;
             pendingPurchase = purchase;
-            AdjustPurchase.verifyPurchase(purchase.getSku(),
-                                          purchase.getPurchaseToken(),
-                                          purchase.getPurchaseData(),
-                                          this);
+            HSInAppPurchase.PurchaseType type;
+            if (pendingPurchase != null && (type = pendingPurchase.getType()) != null) {
+                switch (type) {
+                    case INAPP:
+                        AdjustPurchase.verifyPurchase(purchase.getSku(),
+                                                      purchase.getPurchaseToken(),
+                                                      purchase.getDeveloperPayload(),
+                                                      this);
+                        break;
+                    case SUBS:
+                        trackSubscription(pendingPurchase);
+                        break;
+                    default:
+                        onFail(buildError("Purchase type not provided"));
+                        break;
+                }
+            } else {
+                onFail(buildError("Purchase not provided"));
+            }
         }
 
         @Override
@@ -276,19 +291,8 @@ public class HSAdjustService extends HSService {
             } else {
                 switch (info.getVerificationState()) {
                     case ADJPVerificationStatePassed: {
-                        HSInAppPurchase.PurchaseType type;
-                        if (pendingPurchase != null && (type = pendingPurchase.getType()) != null) {
-                            switch (type) {
-                                case INAPP:
-                                    trackInApp(pendingPurchase);
-                                    break;
-                                case SUBS:
-                                    trackSubscription(pendingPurchase);
-                                    break;
-                            }
-                        } else {
-                            onFail(buildError("Purchase not provided"));
-                        }
+                        assert pendingPurchase != null;
+                        trackInApp(pendingPurchase);
                         break;
                     }
                     case ADJPVerificationStateFailed: {

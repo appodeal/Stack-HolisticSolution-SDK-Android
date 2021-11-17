@@ -10,6 +10,7 @@ public class HSInAppPurchase {
     private String publicKey;
     private String signature;
     private String purchaseData;
+    private String developerPayload;
     private String price;
     private String currency;
     private String sku;
@@ -35,6 +36,10 @@ public class HSInAppPurchase {
 
     public String getPurchaseData() {
         return purchaseData;
+    }
+
+    public String getDeveloperPayload() {
+        return developerPayload;
     }
 
     public String getPrice() {
@@ -100,6 +105,11 @@ public class HSInAppPurchase {
 
         public Builder withPurchaseData(String purchaseData) {
             HSInAppPurchase.this.purchaseData = purchaseData;
+            return this;
+        }
+
+        public Builder withDeveloperPayload(String developerPayload) {
+            HSInAppPurchase.this.developerPayload = developerPayload;
             return this;
         }
 

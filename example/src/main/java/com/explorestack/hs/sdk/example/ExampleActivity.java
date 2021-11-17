@@ -140,6 +140,7 @@ public class ExampleActivity extends AppCompatActivity {
                 .withPurchaseData(purchase.getOriginalJson())
                 .withPurchaseToken(purchase.getPurchaseToken())
                 .withPurchaseTimestamp(purchase.getPurchaseTime())
+                .withDeveloperPayload(purchase.getDeveloperPayload())
                 .withOrderId(purchase.getOrderId())
                 .withSku(sku)
                 .withPrice(price)
