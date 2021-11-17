@@ -1,8 +1,8 @@
 apply plugin: 'com.android.library'
 apply from: '../service.gradle'
 
-componentVersionCode = 2
-componentSdkVersion = '19.0.0'
+componentVersionCode = 3
+componentSdkVersion = '19.0.2'
 
 dependencies {
     //Firebase Remote Config SDK

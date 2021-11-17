@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 apply from: '../service.gradle'
 
 componentVersionCode = 3
-componentSdkVersion = '4.28.4'
+componentSdkVersion = '4.28.7'
 
 dependencies {
     //Adjust SDK
@@ -10,7 +10,7 @@ dependencies {
     //Adjust Purchase SDK
     remoteDependency 'com.explorestack.adjust:sdk-purchase:1.1.2'
     //Play Install Referrer Library for Adjust SDK
-    remoteDependency 'com.android.installreferrer:installreferrer:1.1.2'
+    remoteDependency 'com.android.installreferrer:installreferrer:2.2'
     //Play Services Ads Identifier Library for Adjust SDK
     remoteDependency 'com.google.android.gms:play-services-ads-identifier:17.0.0'
 }
