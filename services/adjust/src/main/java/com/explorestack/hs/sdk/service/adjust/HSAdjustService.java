@@ -1,5 +1,7 @@
 package com.explorestack.hs.sdk.service.adjust;
 
+import static com.explorestack.hs.sdk.HSUtils.mergeMap;
+
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
@@ -45,10 +47,11 @@ public class HSAdjustService extends HSService {
     private static OnAttributionChangedListener externalAttributionListener;
     @Nullable
     private static OnADJPVerificationFinished externalPurchaseValidatorListener;
-    @Nullable
-    private static HSConnectorCallback connectorCallback;
+
     @Nullable
     private Map<String, String> eventTokens = null;
+    @Nullable
+    private HSConnectorCallback connectorCallback = null;
 
     public HSAdjustService() {
         super("Adjust", Adjust.getSdkVersion(), BuildConfig.COMPONENT_VERSION);
@@ -79,9 +82,9 @@ public class HSAdjustService extends HSService {
             return;
         }
         if (extra.has("events")) {
-            eventTokens = HSUtils.jsonToMap(extra.optJSONObject("events"));
+            this.eventTokens = HSUtils.jsonToMap(extra.optJSONObject("events"));
         }
-        HSAdjustService.connectorCallback = connectorCallback;
+        this.connectorCallback = connectorCallback;
         AdjustConfig adjustConfig = new AdjustConfig(context, appToken, environment);
         adjustConfig.setLogLevel(HSLogger.isEnabled() ? LogLevel.VERBOSE : LogLevel.INFO);
         adjustConfig.setOnAttributionChangedListener(new AttributionChangedListener(callback, connectorCallback));
@@ -89,8 +92,8 @@ public class HSAdjustService extends HSService {
         HSAdvertisingProfile advertisingProfile = params.getAdvertisingProfile();
         if (advertisingProfile != null && advertisingProfile.isZero()) {
             String idfa = advertisingProfile.getId(context);
-            Adjust.addSessionCallbackParameter("externalDeviceId", idfa);
             Adjust.addSessionPartnerParameter("externalDeviceId", idfa);
+            Adjust.addSessionCallbackParameter("externalDeviceId", idfa);
             adjustConfig.setExternalDeviceId(idfa);
         }
         Map<String, Object> partnerParams = connectorCallback.getPartnerParams();
@@ -98,8 +101,8 @@ public class HSAdjustService extends HSService {
             for (Map.Entry<String, Object> param : partnerParams.entrySet()) {
                 String key = param.getKey();
                 String value = String.valueOf(param.getValue());
-                Adjust.addSessionCallbackParameter(key, value);
                 Adjust.addSessionPartnerParameter(key, value);
+                Adjust.addSessionCallbackParameter(key, value);
             }
         }
         if (context instanceof Application) {
@@ -230,18 +233,18 @@ public class HSAdjustService extends HSService {
         public void onEvent(@NonNull String eventName,
                             @Nullable Map<String, Object> params) {
             String eventToken = getEventToken(eventName);
+            AdjustEvent adjustEvent = new AdjustEvent(eventToken);
             Map<String, Object> partnerParams = null;
             if (connectorCallback != null) {
                 partnerParams = connectorCallback.getPartnerParams();
             }
-            partnerParams = HSUtils.mergeMap(params, partnerParams);
-            AdjustEvent adjustEvent = new AdjustEvent(eventToken);
-            if (partnerParams.size() > 0) {
-                for (Map.Entry<String, Object> param : partnerParams.entrySet()) {
+            Map<String, Object> eventParams = mergeMap(params, partnerParams);
+            if (eventParams.size() > 0) {
+                for (Map.Entry<String, Object> param : eventParams.entrySet()) {
                     String key = param.getKey();
                     String value = String.valueOf(param.getValue());
-                    adjustEvent.addCallbackParameter(key, value);
                     adjustEvent.addPartnerParameter(key, value);
+                    adjustEvent.addCallbackParameter(key, value);
                 }
             }
             Adjust.trackEvent(adjustEvent);
@@ -321,23 +324,24 @@ public class HSAdjustService extends HSService {
                 if (price != null) {
                     AdjustPlayStoreSubscription subscription =
                             new AdjustPlayStoreSubscription(price.longValue(),
-                                    currency,
-                                    purchase.getSku(),
-                                    purchase.getOrderId(),
-                                    purchase.getSignature(),
-                                    purchase.getPurchaseToken());
+                                                            currency,
+                                                            purchase.getSku(),
+                                                            purchase.getOrderId(),
+                                                            purchase.getSignature(),
+                                                            purchase.getPurchaseToken());
                     subscription.setPurchaseTime(purchase.getPurchaseTimestamp());
                     Map<String, Object> partnerParams = null;
                     if (connectorCallback != null) {
                         partnerParams = connectorCallback.getPartnerParams();
                     }
-                    partnerParams = HSUtils.mergeMap(purchase.getAdditionalParameters(), partnerParams);
-                    if (partnerParams.size() > 0) {
-                        for (Map.Entry<String, Object> param : partnerParams.entrySet()) {
+                    Map<String, String> purchaseParams = purchase.getAdditionalParameters();
+                    Map<String, Object> subsParams = mergeMap(purchaseParams, partnerParams);
+                    if (subsParams.size() > 0) {
+                        for (Map.Entry<String, Object> param : subsParams.entrySet()) {
                             String key = param.getKey();
                             String value = String.valueOf(param.getValue());
-                            subscription.addCallbackParameter(key, value);
                             subscription.addPartnerParameter(key, value);
+                            subscription.addCallbackParameter(key, value);
                         }
                     }
                     Adjust.trackPlayStoreSubscription(subscription);
@@ -354,22 +358,23 @@ public class HSAdjustService extends HSService {
                 String currency = purchase.getCurrency();
                 Double price = HSUtils.parsePrice(purchasePrice, currency);
                 if (price != null) {
-                    AdjustEvent event = new AdjustEvent(getEventToken("hs_sdk_purchase"));
-                    event.setRevenue(price, currency);
+                    AdjustEvent inapp = new AdjustEvent(getEventToken("hs_sdk_purchase"));
+                    inapp.setRevenue(price, currency);
                     Map<String, Object> partnerParams = null;
                     if (connectorCallback != null) {
                         partnerParams = connectorCallback.getPartnerParams();
                     }
-                    partnerParams = HSUtils.mergeMap(purchase.getAdditionalParameters(), partnerParams);
-                    if (partnerParams.size() > 0) {
-                        for (Map.Entry<String, Object> param : partnerParams.entrySet()) {
+                    Map<String, String> purchaseParams = purchase.getAdditionalParameters();
+                    Map<String, Object> inappParams = mergeMap(purchaseParams, partnerParams);
+                    if (inappParams.size() > 0) {
+                        for (Map.Entry<String, Object> param : inappParams.entrySet()) {
                             String key = param.getKey();
                             String value = String.valueOf(param.getValue());
-                            event.addCallbackParameter(key, value);
-                            event.addPartnerParameter(key, value);
+                            inapp.addPartnerParameter(key, value);
+                            inapp.addCallbackParameter(key, value);
                         }
                     }
-                    Adjust.trackEvent(event);
+                    Adjust.trackEvent(inapp);
                     onSuccess();
                     return;
                 }
