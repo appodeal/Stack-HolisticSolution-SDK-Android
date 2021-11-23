@@ -90,6 +90,7 @@ class HSAppInstance {
                 }
             };
             appContext = context.getApplicationContext();
+            setTopActivity(HSActivityHelper.getTopActivity());
             ((Application) appContext).registerActivityLifecycleCallbacks(lifecycleDelegate);
             initializer = new HSAppInitializer(new HSSimpleContextProvider(context), this, config, listenerDelegate);
             initializer.start();

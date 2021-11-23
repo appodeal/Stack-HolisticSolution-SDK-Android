@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.appodeal.ads.Appodeal;
+import com.appodeal.ads.ExtraData;
 import com.appodeal.ads.utils.Log;
 import com.explorestack.consent.Consent;
 import com.explorestack.hs.sdk.HSComponentCallback;
@@ -19,6 +20,7 @@ import com.explorestack.hs.sdk.HSLogger;
 import com.explorestack.hs.sdk.HSRegulator;
 import com.explorestack.hs.sdk.HSUtils;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class HSAppodealConnector extends HSConnector<Consent> {
@@ -109,6 +111,19 @@ public class HSAppodealConnector extends HSConnector<Consent> {
                     }
                 }
             }
+        }
+
+        @NonNull
+        @Override
+        public Map<String, Object> getPartnerParams() {
+            Map<String, Object> partnerParams = new HashMap<>();
+            partnerParams.put("appodeal_framework", Appodeal.getFrameworkName());
+            partnerParams.put("appodeal_framework_version", Appodeal.getEngineVersion());
+            partnerParams.put("appodeal_plugin_version", Appodeal.getPluginVersion());
+            partnerParams.put("appodeal_sdk_version", Appodeal.getVersion());
+            partnerParams.put("appodeal_segment_id", Appodeal.getSegmentId());
+            partnerParams.put("firebase_keywords", ExtraData.getJson().optString("keywords"));
+            return partnerParams;
         }
     }
 }

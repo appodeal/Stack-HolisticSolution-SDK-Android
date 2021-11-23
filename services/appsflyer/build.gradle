@@ -1,12 +1,12 @@
 apply plugin: 'com.android.library'
 apply from: '../service.gradle'
 
-componentVersionCode = 2
-componentSdkVersion = '6.3.2'
+componentVersionCode = 3
+componentSdkVersion = '6.4.2'
 
 dependencies {
     //Appsflyer SDK
     remoteDependency "com.appsflyer:af-android-sdk:$componentSdkVersion"
     //Play Install Referrer Library for AppsFlyer SDK
-    remoteDependency 'com.android.installreferrer:installreferrer:1.1.2'
+    remoteDependency 'com.android.installreferrer:installreferrer:2.2'
 }
