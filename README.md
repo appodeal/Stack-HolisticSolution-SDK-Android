@@ -48,7 +48,7 @@ Example app-level build.gradle (excerpt)
 ```groovy
 dependencies {
     // ... other project dependencies
-    implementation 'com.explorestack.hs:sdk:2.0.0.+'
+    implementation 'com.explorestack.hs:sdk:2.0.1.+'
 }
 ```
 
@@ -171,6 +171,7 @@ public void validatePurchase(Purchase purchase) {
         .withPurchaseData(purchase.getOriginalJson())
         .withPurchaseToken(purchase.getPurchaseToken())
         .withPurchaseTimestamp(purchase.getPurchaseTime())
+        .withDeveloperPayload(purchase.getDeveloperPayload())
         .withOrderId(purchase.getOrderId())
         .withSku(...)
         .withPrice(...)
@@ -195,19 +196,20 @@ public void validatePurchase(Purchase purchase) {
 }
 ```
 
-| Parameter            | Description                                                                                                        |
-|----------------------|--------------------------------------------------------------------------------------------------------------------|
-| purchaseType         | Purchase type. Must be one of [PurchaseType](sdk/src/main/java/com/explorestack/hs/sdk/HSInAppPurchase.java#L7).   |
-| publicKey            | [Public key from Google Developer Console](https://support.google.com/googleplay/android-developer/answer/186113). |
-| signature            | Transaction signature (returned from Google API when the purchase is completed).                                   |
-| purchaseData         | Product purchased in JSON format (returned from Google API when the purchase is completed).                        |
-| purchaseToken        | Product purchased token (returned from Google API when the purchase is completed).                        	        |
-| purchaseTimestamp    | Product purchased timestamp (returned from Google API when the purchase is completed).                        	    |
-| orderId              | Product purchased unique order id for the transaction (returned from Google API when the purchase is completed).   |
-| sku                  | Stock keeping unit id.											                                                    |
-| price                | Purchase revenue.                                                                                                  |
-| currency             | Purchase currency.                                                                                                 |
-| additionalParameters | Additional parameters of the purchase event.                                                                       |
+| Parameter            | Description                                                                                                        | Usage                     |
+|----------------------|--------------------------------------------------------------------------------------------------------------------|---------------------------|
+| purchaseType         | Purchase type. Must be one of [PurchaseType](sdk/src/main/java/com/explorestack/hs/sdk/HSInAppPurchase.java#L7).   | Adjust/AppsFlyer          |
+| publicKey            | [Public key from Google Developer Console](https://support.google.com/googleplay/android-developer/answer/186113). | AppsFlyer                 |
+| signature            | Transaction signature (returned from Google API when the purchase is completed).                                   | Adjust/AppsFlyer          |
+| purchaseData         | Product purchased in JSON format (returned from Google API when the purchase is completed).                        | AppsFlyer                 |
+| purchaseToken        | Product purchased token (returned from Google API when the purchase is completed).                        	        | Adjust                    |
+| purchaseTimestamp    | Product purchased timestamp (returned from Google API when the purchase is completed).                        	    | Adjust                    |
+| developerPayload     | Product purchased developer payload (returned from Google API when the purchase is completed).                     | Adjust                    |
+| orderId              | Product purchased unique order id for the transaction (returned from Google API when the purchase is completed).   | Adjust                    |
+| sku                  | Stock keeping unit id.											                                                    | Adjust                    |
+| price                | Purchase revenue.                                                                                                  | Adjust/AppsFlyer/Appodeal |
+| currency             | Purchase currency.                                                                                                 | Adjust/AppsFlyer/Appodeal |
+| additionalParameters | Additional parameters of the purchase event.                                                                       | Adjust/AppsFlyer          |
 
 > In-App purchase validation runs by FIFO queue in a single thread
 
