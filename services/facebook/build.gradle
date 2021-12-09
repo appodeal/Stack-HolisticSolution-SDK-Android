@@ -1,8 +1,8 @@
 apply plugin: 'com.android.library'
 apply from: '../service.gradle'
 
-componentVersionCode = 3
-componentSdkVersion = '12.1.0'
+componentVersionCode = 4
+componentSdkVersion = '12.2.0'
 
 dependencies {
     //Facebook Core SDK
