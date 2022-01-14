@@ -8,8 +8,8 @@ ext {
 
 android {
     defaultConfig {
-        versionCode 200000100
-        versionName "2.0.1"
+        versionCode 200000200
+        versionName "2.0.2"
         buildConfigField "String", "HS_VERSION", "\"${versionName}\""
         buildConfigField "String", "HS_API_URL", "\"https://a.appbaqend.com/hs\""
         consumerProguardFiles "consumer-rules.pro"
