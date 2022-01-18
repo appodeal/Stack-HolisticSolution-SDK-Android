@@ -48,7 +48,7 @@ Example app-level build.gradle (excerpt)
 ```groovy
 dependencies {
     // ... other project dependencies
-    implementation 'com.explorestack.hs:sdk:2.0.1.+'
+    implementation 'com.explorestack.hs:sdk:2.0.2.+'
 }
 ```
 
