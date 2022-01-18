@@ -18,7 +18,9 @@
             android:theme="@style/AppTheme"
             tools:ignore="AllowBackup,UnusedAttribute"
             tools:replace="android:fullBackupContent">
-        <activity android:name=".ExampleActivity">
+
+        <activity android:name=".ExampleActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
